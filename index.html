@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#FBF6F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vanessa Training Log">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Vanessa — Training Log</title>
+<style>
+:root{
+  /* Vanessa palette: SOFT · PEACH · DISCO · GOLDIE · CORAL · FIERY · OPAL · STARBOARD */
+  --soft:#F6EDE5; --peach:#F9D8CF; --disco:#F5A0DC; --goldie:#C9990F;
+  --coral:#F9B49C; --fiery:#F4714C; --opal:#A9D2CA; --star:#2D5F5D;
+
+  --bg:#FBF6F1; --bg-2:#F6EDE5; --panel:#FFFFFF; --panel-2:#FBF6F1;
+  --line:#EADFD4; --line-2:#DCCEC1;
+  --chalk:#2D3A3A; --dim:#6E7E7D; --dimmer:#9AA6A5;
+  --brass:var(--goldie); --brass-2:#E0B44A; --brass-dk:#8A6A0B;
+  --amber:var(--fiery); --cyan:var(--star);
+  --go:#3F8F72; --hot:#E05A4B; --ice:var(--star);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;padding:0 0 92px;background:var(--bg);color:var(--chalk);font-family:var(--sans);
+  max-width:680px;margin:0 auto;overscroll-behavior-y:contain;-webkit-font-smoothing:antialiased}
+
+/* ── masthead ── */
+header{position:sticky;top:0;z-index:30;background:rgba(251,246,241,.95);backdrop-filter:saturate(140%) blur(10px);
+  border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.mast{display:flex;align-items:baseline;justify-content:space-between;padding:13px 18px 9px}
+.mast .t{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.005em;transition:opacity .2s;color:var(--star)}
+.mast .t.hide{opacity:0;pointer-events:none}
+.mast .t em{font-style:italic;color:var(--brass);font-weight:400}
+.mast .d{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);letter-spacing:.06em;text-transform:uppercase}
+.rule{height:2px;background:linear-gradient(90deg,var(--fiery),var(--disco) 45%,var(--opal) 75%,transparent);margin:0 18px}
+nav{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 10px}
+nav::-webkit-scrollbar{display:none}
+.nb{flex:0 0 auto;background:none;border:0;border-bottom:2.5px solid transparent;color:#7E8C8B;
+  font:600 13.5px/1 var(--sans);letter-spacing:.015em;padding:13px 12px 11px;cursor:pointer;white-space:nowrap;
+  transition:color .15s}
+.nb:active{color:var(--star)}
+.nb.on{color:var(--star);border-bottom-color:var(--fiery)}
+
+.wrap{padding:16px 14px 0}
+h2.sec{font-family:var(--sans);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--dimmer);font-weight:600;margin:26px 4px 9px;display:flex;align-items:center;gap:10px}
+h2.sec:first-child{margin-top:6px}
+h2.sec:after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ── cards ── */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;margin-bottom:9px;overflow:hidden;
+  transition:border-color .2s}
+.card.flag{border-color:var(--brass-dk);background:linear-gradient(180deg,rgba(201,151,63,.05),var(--panel))}
+.chead{display:flex;align-items:center;gap:12px;padding:14px 15px;cursor:pointer}
+.cn{flex:1;min-width:0}
+.cn b{display:block;font-size:15px;font-weight:600;letter-spacing:-.012em}
+.cn i{display:block;font-style:normal;font-size:9.5px;color:var(--dimmer);letter-spacing:.11em;text-transform:uppercase;margin-top:4px}
+.cl{font-family:var(--mono);font-size:12px;color:var(--dim);text-align:right;white-space:nowrap;line-height:1.5}
+.cl b{color:var(--chalk);font-weight:600;font-size:13px}
+.cl span{display:block;font-size:8.5px;color:var(--dimmer);letter-spacing:.09em;text-transform:uppercase}
+.chev{color:var(--dimmer);font-size:17px;transition:transform .2s}
+.card.open .chev{transform:rotate(90deg);color:var(--fiery)}
+.cbody{display:none;border-top:1px solid var(--line);padding:2px 11px 12px}
+.card.open .cbody{display:block}
+
+.srow{display:flex;align-items:flex-start;gap:7px;padding:10px 3px;border-bottom:1px solid var(--line)}
+.srow:last-of-type{border-bottom:0}
+.sn{width:19px;padding-top:17px;font-family:var(--mono);font-size:10px;color:var(--dimmer)}
+.fg{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.fl{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--dimmer)}
+.gh{font-family:var(--mono);font-size:9px;color:var(--brass-dk);height:11px;letter-spacing:.03em}
+input.n{width:100%;background:var(--panel-2);border:1px solid var(--line-2);border-radius:9px;color:var(--chalk);
+  font-family:var(--mono);font-size:17px;font-weight:600;text-align:center;padding:10px 2px;-moz-appearance:textfield}
+input.n::-webkit-inner-spin-button,input.n::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input.n:focus{outline:none;border-color:var(--brass);background:#282d34}
+input.n[type=time]{font-size:18px}
+.pk{display:flex;gap:3px}
+.pb{flex:1;background:var(--panel-2);border:1px solid var(--line-2);border-radius:8px;color:var(--dim);
+  font-family:var(--mono);font-size:13px;font-weight:600;padding:10px 0;cursor:pointer;transition:all .12s}
+.pb.on{background:var(--star);border-color:var(--star);color:#fff}
+.pb.on[data-r="0"]{background:var(--fiery);border-color:var(--fiery);color:#fff}
+
+.cue{margin:4px 3px 0;padding:9px 11px;border-radius:9px;background:rgba(249,216,207,.6);
+  border:1px solid var(--peach);font-size:11.5px;color:#9C4A2E;line-height:1.5}
+.cue.go{background:rgba(169,210,202,.4);border-color:var(--opal);color:#2A6B5C}
+
+/* ── metric tiles ── */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 14px;position:relative;overflow:hidden}
+.tile:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--brass-dk)}
+.tile.b:before{background:var(--ice)} .tile.g:before{background:var(--go)} .tile.r:before{background:var(--hot)}
+.tile .k{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer);margin-bottom:9px}
+.tile .v{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1;letter-spacing:-.01em}
+.tile .v u{text-decoration:none;font-size:12px;color:var(--dim);margin-left:2px;font-family:var(--sans);font-weight:400}
+.tile .s{font-size:10px;color:var(--dim);margin-top:7px;line-height:1.45}
+.tile.wide{grid-column:1/-1}
+
+.dl{display:flex;justify-content:space-between;align-items:baseline;padding:11px 2px;border-bottom:1px solid var(--line);gap:12px}
+.dl:last-child{border-bottom:0}
+.dl .a{font-size:13px;color:var(--chalk)}
+.dl .a u{text-decoration:none;display:block;font-size:9.5px;color:var(--dimmer);margin-top:3px;letter-spacing:.04em}
+.dl .b{font-family:var(--mono);font-size:13px;color:var(--chalk);text-align:right;white-space:nowrap}
+.dl .b u{text-decoration:none;display:block;font-size:9px;color:var(--dimmer);margin-top:3px}
+.hi{color:var(--brass)!important} .lo{color:var(--ice)!important} .ok{color:var(--go)!important} .bad{color:var(--hot)!important}
+.fig.hi{color:var(--amber)!important} .fig.ok{color:#7ee0a6!important} .fig.bad{color:#ff8f6b!important}
+
+/* ── timeline ── */
+.tl{position:relative;padding-left:26px}
+.tl:before{content:"";position:absolute;left:6px;top:6px;bottom:14px;width:1px;background:var(--line-2)}
+.ev{position:relative;padding:0 0 20px}
+.ev:before{content:"";position:absolute;left:-23px;top:5px;width:9px;height:9px;border-radius:50%;
+  background:var(--bg);border:1.5px solid var(--line-2)}
+.ev.now:before{background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 4px rgba(201,151,63,.16)}
+.ev .vn{font-family:var(--mono);font-size:11px;color:var(--brass);letter-spacing:.07em}
+.ev .vd{font-size:9px;color:var(--dimmer);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.ev .vt{font-size:12.5px;color:var(--dim);line-height:1.55;margin-top:7px}
+.ev .vt b{color:var(--chalk);font-weight:600}
+
+
+/* ── home ── */
+.hero{padding:26px 6px 20px}
+.hero h1{font-family:var(--serif);font-size:34px;font-weight:600;line-height:1.05;letter-spacing:-.015em;margin:0;color:var(--star)}
+.hero h1 em{display:block;font-style:italic;color:var(--fiery);font-weight:400}
+.hero .hr2{height:2px;background:linear-gradient(90deg,var(--fiery),var(--disco) 40%,var(--opal) 70%,transparent);margin:15px 0 11px;width:78%}
+.hero .dd{font-family:var(--mono);font-size:10.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--dimmer)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:12px}
+.big{position:relative;aspect-ratio:1/1;min-width:0;background:rgba(244,113,76,.16);
+  border:4px solid var(--fiery);border-radius:16px;padding:16px 12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;text-align:center;color:inherit;font:inherit;
+  transition:transform .09s cubic-bezier(.3,.7,.4,1), box-shadow .09s cubic-bezier(.3,.7,.4,1), filter .09s;
+  box-shadow:
+    0 10px 0 -1px #C4482A,
+    0 11px 0 -1px rgba(255,255,255,.10),
+    0 18px 26px -8px rgba(45,95,93,.22),
+    0 0 34px -10px rgba(240,169,56,.55),
+    inset 0 1.5px 0 rgba(255,255,255,.6),
+    inset 0 0 40px -18px rgba(244,113,76,.75)}
+.big.n{background:rgba(45,95,93,.14);border-color:var(--star);
+  box-shadow:
+    0 10px 0 -1px #1B403F,
+    0 11px 0 -1px rgba(255,255,255,.10),
+    0 18px 26px -8px rgba(45,95,93,.22),
+    0 0 34px -10px rgba(56,189,248,.6),
+    inset 0 1.5px 0 rgba(255,255,255,.6),
+    inset 0 0 40px -18px rgba(45,95,93,.55)}
+.big:active{transform:translateY(10px) scale(.985);filter:brightness(1.05) saturate(1.1);
+  box-shadow:0 0 0 -1px #C4482A,0 2px 5px -4px rgba(45,95,93,.4),
+    0 0 18px -10px rgba(240,169,56,.45),inset 0 3px 10px -4px rgba(0,0,0,.16),
+    inset 0 0 40px -14px rgba(244,113,76,.7)}
+.big.n:active{box-shadow:0 0 0 -1px #1B403F,0 2px 5px -4px rgba(45,95,93,.4),
+    0 0 18px -10px rgba(56,189,248,.45),inset 0 3px 10px -4px rgba(0,0,0,.16),
+    inset 0 0 40px -14px rgba(45,95,93,.6)}
+.big svg{width:33px;height:33px;stroke:var(--fiery);fill:none;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+.big.n svg{stroke:var(--star)}
+.big .fig{font-family:var(--serif);font-size:58px;font-weight:600;line-height:.92;letter-spacing:-.03em;color:var(--star)}
+.big .fig u{text-decoration:none;font-family:var(--sans);font-size:19px;color:var(--dim);font-weight:400}
+.big .lbl{font-size:20px;font-weight:800;color:var(--star);margin-top:10px;letter-spacing:-.02em;line-height:1.08;
+  max-width:100%;overflow-wrap:break-word}
+.big .cap{max-width:100%;font-size:11px;color:var(--dim);line-height:1.4;margin-top:7px}
+.big .cap b{color:var(--star);font-weight:700}
+
+.wide{position:relative;min-width:0;background:rgba(169,210,202,.42);border:4px solid var(--opal);
+  border-radius:16px;padding:16px 16px;margin-top:12px;display:flex;align-items:center;gap:15px;
+  cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%;
+  transition:transform .09s cubic-bezier(.3,.7,.4,1),box-shadow .09s cubic-bezier(.3,.7,.4,1),filter .09s;
+  box-shadow:0 10px 0 -1px #6FA79D,0 11px 0 -1px rgba(255,255,255,.10),
+    0 18px 26px -8px rgba(45,95,93,.22),inset 0 1.5px 0 rgba(255,255,255,.6),
+    inset 0 0 46px -18px rgba(120,180,170,.7)}
+.wide:active{transform:translateY(10px) scale(.99);filter:brightness(1.04) saturate(1.1);
+  box-shadow:0 0 0 -1px #2e6247,0 2px 5px -4px rgba(45,95,93,.4),
+    inset 0 3px 10px -4px rgba(0,0,0,.16),inset 0 0 46px -14px rgba(120,180,170,.8)}
+.wide svg{width:33px;height:33px;stroke:var(--star);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.wide .tx{flex:1;min-width:0}
+.wide .tx b{display:block;font-size:20px;font-weight:800;color:var(--star);letter-spacing:-.02em}
+.wide .tx i{display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:4px}
+.wide .num{text-align:right;flex:0 0 auto}
+.wide .num .k{font-family:var(--serif);font-size:34px;font-weight:600;line-height:1;color:var(--star)}
+.wide .num .u{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin-top:5px}
+
+/* food screen */
+.say{background:var(--panel);border:2.5px solid var(--line-2);border-radius:14px;padding:13px;margin-bottom:12px}
+.say textarea{width:100%;background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;
+  color:var(--chalk);font:400 15px/1.5 var(--sans);padding:12px;resize:none;min-height:76px}
+.say textarea:focus{outline:none;border-color:var(--go)}
+.say .hintl{font-size:10px;color:var(--dimmer);margin:9px 2px 0;line-height:1.5}
+.say .row{display:flex;gap:8px;margin-top:10px}
+.say .go2{flex:1;background:linear-gradient(180deg,#BFDFD8,var(--opal));border:0;border-radius:10px;color:var(--star);
+  font:700 14px var(--sans);padding:13px 0;cursor:pointer}
+.say .go2.n{background:linear-gradient(180deg,#4C8583,var(--star));color:#fff}
+.say .clr{flex:0 0 auto;background:var(--panel-2);border:1.5px solid var(--line-2);border-radius:10px;
+  color:var(--dim);font:600 13px var(--sans);padding:13px 15px;cursor:pointer}
+.conf{border:2px solid var(--opal);border-radius:12px;padding:12px;margin-top:11px;background:rgba(169,210,202,.28)}
+.conf.n{border-color:var(--star);background:rgba(45,95,93,.08)}
+.conf h4{margin:0 0 9px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--star);font-weight:700}
+.conf.n h4{color:var(--star)}
+.conf .ci{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
+.conf .ci:last-of-type{border-bottom:0}
+.conf .ci .nm{flex:1;font-size:13.5px}
+.conf .ci .nm u{text-decoration:none;display:block;font-size:10px;color:var(--dimmer);margin-top:2px}
+.conf .ci input{width:52px;background:var(--panel-2);border:1.5px solid var(--line-2);border-radius:8px;
+  color:var(--chalk);font-family:var(--mono);font-size:14px;text-align:center;padding:7px 2px}
+.conf .ci .drop{background:none;border:0;color:var(--hot);font-size:17px;padding:4px 6px;cursor:pointer}
+.conf .miss{font-size:11.5px;color:var(--hot);padding:7px 2px}
+.wide.w2{background:rgba(245,160,220,.26);border-color:var(--disco);
+  box-shadow:0 10px 0 -1px #C46FA8,0 11px 0 -1px rgba(255,255,255,.10),
+    0 18px 26px -8px rgba(45,95,93,.22),inset 0 1.5px 0 rgba(255,255,255,.6),
+    inset 0 0 46px -18px rgba(245,160,220,.7)}
+.wide.w2:active{box-shadow:0 0 0 -1px #C46FA8,0 2px 5px -4px rgba(45,95,93,.4),
+    inset 0 3px 10px -4px rgba(0,0,0,.16),inset 0 0 46px -14px rgba(245,160,220,.8)}
+.wide.w2 svg{stroke:#B0498E}
+.exw{border-bottom:1px solid var(--line)}
+.exw .dl{border-bottom:0}
+.exc{padding:0 0 10px}
+.chart{position:relative;background:linear-gradient(165deg,color-mix(in srgb,var(--ac) 14%,var(--panel)),var(--panel) 62%);
+  border:2.5px solid color-mix(in srgb,var(--ac) 58%,transparent);border-radius:16px;
+  padding:14px 12px 8px;margin-bottom:12px;overflow:hidden;
+  box-shadow:0 6px 0 -1px rgba(45,95,93,.14),0 14px 22px -10px rgba(45,95,93,.22),
+    inset 0 1.5px 0 rgba(255,255,255,.7),inset 0 0 50px -20px var(--ac)}
+.chart .ch{display:flex;align-items:center;gap:8px;padding:0 2px 2px}
+.chart .dotc{width:8px;height:8px;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 10px 1px var(--ac);flex:0 0 auto}
+.chart .ch b{flex:1;font-size:13.5px;font-weight:800;color:var(--star);letter-spacing:-.01em}
+.chart .delta{font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 8px;border-radius:20px;
+  background:rgba(45,95,93,.08);color:var(--dim)}
+.chart .delta.up{color:#2A6B5C;background:rgba(169,210,202,.5)}
+.chart .delta.dn{color:#C4482A;background:rgba(249,180,156,.5)}
+.chart .cnow{display:flex;align-items:baseline;gap:9px;padding:6px 2px 8px}
+.chart .cv{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1;color:var(--star)}
+.chart .cs{font-size:10px;color:var(--dim);line-height:1.4}
+.spk{width:100%;height:100px;display:block}
+.cx{display:flex;justify-content:space-between;font-size:9px;color:var(--dimmer);
+  padding:4px 2px 4px;font-family:var(--mono)}
+.imp{border:2.5px dashed var(--line-2);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--panel)}
+.imp .ih{display:flex;align-items:center;gap:9px;cursor:pointer}
+.imp .ih b{flex:1;font-size:13.5px;font-weight:700}
+.imp .ih span{font-size:17px;color:var(--dimmer);transition:transform .18s}
+.imp.open .ih span{transform:rotate(90deg);color:var(--brass)}
+.imp .ib{display:none;margin-top:12px}
+.imp.open .ib{display:block}
+.imp textarea{width:100%;background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;
+  color:var(--chalk);font:400 13px/1.5 var(--mono);padding:11px;resize:none;min-height:92px}
+.imp textarea:focus{outline:none;border-color:var(--brass)}
+.imp .btns{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.imp .fbtn{flex:1;min-width:96px;background:var(--panel-2);border:1.5px solid var(--line-2);border-radius:10px;
+  color:var(--chalk);font:600 12.5px var(--sans);padding:12px 6px;cursor:pointer;text-align:center}
+.imp .fbtn:active{background:var(--line)}
+.imp .run{width:100%;margin-top:9px;background:linear-gradient(180deg,var(--brass-2),var(--brass));border:0;
+  border-radius:10px;color:#17191c;font:700 13.5px var(--sans);padding:13px 0;cursor:pointer}
+.imp .fmt{font-size:10px;color:var(--dimmer);line-height:1.6;margin-top:9px}
+.imp .fmt code{font-family:var(--mono);color:var(--dim)}
+.imp .stat{font-size:11.5px;margin-top:9px;line-height:1.5}
+.wide.w3{background:rgba(201,153,15,.20);border-color:var(--goldie);
+  box-shadow:0 10px 0 -1px #8E6B08,0 11px 0 -1px rgba(255,255,255,.5),
+    0 18px 26px -8px rgba(45,95,93,.22),inset 0 1.5px 0 rgba(255,255,255,.6),
+    inset 0 0 46px -18px rgba(201,153,15,.6)}
+.wide.w3:active{box-shadow:0 0 0 -1px #8E6B08,0 2px 5px -4px rgba(45,95,93,.4),
+    inset 0 3px 10px -4px rgba(0,0,0,.16),inset 0 0 46px -14px rgba(201,153,15,.7)}
+.wide.w3 svg{stroke:#8E6B08}
+.mac{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
+.mc{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:12px 4px;text-align:center}
+.mc .v{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1}
+.mc .k{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--dimmer);margin-top:6px}
+.mc .t{font-size:8.5px;color:var(--dimmer);margin-top:3px}
+.pbar{height:5px;border-radius:3px;background:var(--panel-2);overflow:hidden;margin-top:7px}
+.pbar i{display:block;height:100%;background:var(--opal);border-radius:3px}
+.pbar.p i{background:var(--fiery)} .pbar.c i{background:var(--star)} .pbar.f i{background:var(--disco)}
+.srch{width:100%;background:var(--panel);border:2px solid var(--line-2);border-radius:12px;color:var(--chalk);
+  font-size:15px;padding:14px 14px;margin-bottom:10px}
+.srch:focus{outline:none;border-color:var(--go)}
+.fr{display:flex;align-items:center;gap:11px;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.fr:active{background:var(--panel)}
+.fr .fn{flex:1;min-width:0}
+.fr .fn b{display:block;font-size:13.5px;font-weight:600}
+.fr .fn i{display:block;font-style:normal;font-size:10px;color:var(--dimmer);margin-top:3px}
+.fr .fk{font-family:var(--mono);font-size:12px;color:var(--dim);text-align:right;white-space:nowrap}
+.fr .add{background:var(--panel-2);border:1.5px solid var(--go);color:var(--go);border-radius:9px;
+  font-size:17px;font-weight:700;width:36px;height:36px;flex:0 0 auto;cursor:pointer}
+.qty{display:flex;gap:8px;align-items:flex-end;padding:10px 4px 4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;padding-bottom:12px}
+.sq{min-width:0;border:3.25px solid var(--line-2);border-radius:16px;padding:17px 12px;
+  min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;text-align:center;color:inherit;font:inherit;background:var(--panel);
+  transition:transform .09s cubic-bezier(.3,.7,.4,1), box-shadow .09s cubic-bezier(.3,.7,.4,1), filter .09s;
+  box-shadow:0 8px 0 -1px #0a0c0e, 0 9px 0 -1px rgba(255,255,255,.07),
+    0 15px 20px -9px rgba(0,0,0,.78), inset 0 1.5px 0 rgba(255,255,255,.13)}
+.sq:active{transform:translateY(8px) scale(.985);filter:brightness(1.28) saturate(1.15);
+  box-shadow:0 0 0 -1px #0a0c0e,0 2px 5px -4px rgba(45,95,93,.4),
+    inset 0 3px 9px -4px rgba(0,0,0,.5)}
+.sq svg{width:27px;height:27px;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+.sq .lbl{font-size:19px;font-weight:800;color:var(--star);letter-spacing:-.015em;max-width:100%;overflow-wrap:break-word;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.sq .cap{font-size:10.5px;color:var(--dim);margin-top:6px;line-height:1.35}
+.sq.c1{border-color:var(--go);background:rgba(99,168,130,.16);box-shadow:inset 0 0 34px -18px rgba(99,168,130,.9)}
+.sq.c1 svg{stroke:var(--go)}
+.sq.c2{border-color:var(--brass-2);background:rgba(224,181,101,.16);box-shadow:inset 0 0 34px -18px rgba(224,181,101,.9)}
+.sq.c2 svg{stroke:var(--brass-2)}
+.sq.c3{border-color:var(--ice);background:rgba(111,150,184,.18);box-shadow:inset 0 0 34px -18px rgba(111,150,184,.9)}
+.sq.c3 svg{stroke:var(--ice)}
+.sq.c4{border-color:var(--hot);background:rgba(201,96,63,.16);box-shadow:inset 0 0 34px -18px rgba(201,96,63,.9)}
+.sq.c4 svg{stroke:var(--hot)}
+.arch{display:flex;align-items:center;gap:14px;width:100%;background:var(--panel-2);border:1px solid var(--line-2);
+  border-radius:14px;padding:17px 16px;margin-top:10px;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.arch:active{opacity:.85}
+.arch .ic{font-family:var(--serif);font-size:19px;color:var(--brass);width:22px;text-align:center}
+.arch .tx{flex:1}
+.arch .tx b{display:block;font-size:14px;font-weight:600}
+.arch .tx i{display:block;font-style:normal;font-size:10.5px;color:var(--dimmer);margin-top:3px}
+.mini{display:flex;gap:8px;margin-top:10px}
+.mini button{flex:1;background:none;border:1px solid var(--line);border-radius:12px;color:var(--dim);
+  font:600 12px var(--sans);padding:13px 0;cursor:pointer}
+.mini button:active{background:var(--panel)}
+.hint{font-size:10.5px;color:var(--dimmer);line-height:1.6;padding:16px 6px 0;text-align:center}
+.scards{display:flex;gap:8px;margin-bottom:13px}
+.sc{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 6px;text-align:center}
+.sc .v{font-family:var(--serif);font-size:25px;font-weight:600;line-height:1;color:var(--star)}
+.sc .v u{text-decoration:none;font-size:11px;color:var(--dim);font-family:var(--sans)}
+.sc .k{font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);margin-top:7px}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(251,246,241,.97);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  display:flex;gap:8px;max-width:680px;margin:0 auto}
+.btn{flex:1;background:linear-gradient(180deg,#F58A6A,var(--fiery));border:0;border-radius:11px;color:#fff;
+  font:700 14px/1 var(--sans);letter-spacing:.02em;padding:15px 0;cursor:pointer}
+.btn.gh2{flex:0 0 auto;padding:15px 17px;background:var(--panel-2);color:var(--dim);border:1px solid var(--line-2);font-weight:600}
+.btn:active{transform:scale(.985);opacity:.85}
+.addf{display:flex;gap:8px;margin-top:14px}
+.addf input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:11px;color:var(--chalk);font-size:14px;padding:13px 13px}
+.addf input:focus{outline:none;border-color:var(--brass)}
+.addf button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:11px;color:var(--chalk);font-size:19px;padding:0 17px}
+.empty{padding:44px 18px;text-align:center;color:var(--dimmer);font-size:13px;line-height:1.8}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:92px;background:var(--star);color:#fff;
+  font:600 13px var(--sans);padding:11px 21px;border-radius:22px;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+.note{font-size:10.5px;color:var(--dimmer);line-height:1.65;padding:10px 4px 0}
+.del{background:none;border:0;color:var(--dimmer);font-size:11px;padding:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="mast"><span class="t" id="hm" style="cursor:pointer">Vanessa <em>&amp;</em> Strong</span><span class="d" id="dt"></span></div>
+  <div class="rule"></div>
+  <nav id="nav"></nav>
+</header>
+<div id="view"></div>
+<div class="bar" id="bar"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED={
+ D1:{label:"D1",sub:"Lower / Glutes",ex:[
+  {n:"Hip Abduction",t:"Machine",w:0,k:"w"},
+  {n:"Hip Adductor",t:"Machine",w:0,k:"w"},
+  {n:"Leg Press",t:"Machine",w:0,k:"w"},
+  {n:"Single Leg Press",t:"Machine · per leg",w:0,k:"w"},
+  {n:"Glute Press",t:"Machine",w:0,k:"w"},
+  {n:"Leg Extensions",t:"Machine",w:0,k:"w"},
+  {n:"Hip Thrust",t:"Barbell / machine",w:0,k:"w"}]},
+ D2:{label:"D2",sub:"Upper Body",ex:[
+  {n:"Chest Press",t:"Machine",w:0,k:"w"},
+  {n:"Shoulder Press",t:"Machine",w:0,k:"w"},
+  {n:"Lateral Raise",t:"Dumbbell · per hand",w:0,k:"w"},
+  {n:"Front Lateral Raise",t:"Dumbbell · per hand",w:0,k:"w"},
+  {n:"Seated Row",t:"Machine",w:0,k:"w"},
+  {n:"Lateral Pull Down",t:"Machine",w:0,k:"w"},
+  {n:"Bicep Curls",t:"Dumbbell · per hand",w:0,k:"w"},
+  {n:"Tricep Extensions",t:"Cable / dumbbell",w:0,k:"w"},
+  {n:"Push Up",t:"Bodyweight",w:0,k:"b"}]},
+ D3:{label:"D3",sub:"Core & Cardio",ex:[
+  {n:"Russian Twist",t:"Reps",w:0,k:"b"},
+  {n:"Leg Raise",t:"Reps",w:0,k:"b"},
+  {n:"Oblique Crunch",t:"Reps",w:0,k:"b"},
+  {n:"Plank",t:"Hold",w:0,k:"t"},
+  {n:"Side Plank",t:"Hold · per side",w:0,k:"t"},
+  {n:"Stairmaster",t:"Cardio",w:0,k:"t"},
+  {n:"Rowing",t:"Cardio",w:0,k:"t"},
+  {n:"Treadmill",t:"Cardio",w:0,k:"t"}]}};
+
+const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  half:0.5,"a half":0.5,quarter:0.25,couple:2,"a couple":2,double:2,dozen:12,"a dozen":12};
+function numFrom(t){
+  const f=t.match(/(\d+(?:\.\d+)?)\s*(?:and\s*a\s*half)?/);
+  if(/and a half/.test(t)&&f) return parseFloat(f[1])+0.5;
+  if(f) return parseFloat(f[1]);
+  const order=["a dozen","dozen","a couple","couple","half","quarter","double","ten","nine","eight","seven","six","five","four","three","two","one","an","a"];
+  for(const w of order){ if(NUMW[w]!=null && new RegExp("\\b"+w+"\\b").test(t)) return NUMW[w]; }
+  return null;
+}
+function to24(h,m,mer){
+  h=+h; m=m?+m:0;
+  if(mer){ mer=mer.toLowerCase().replace(/\./g,"");
+    if(mer.startsWith("p")&&h<12) h+=12;
+    if(mer.startsWith("a")&&h===12) h=0; }
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+function parseSleep(raw){
+  const t=" "+raw.toLowerCase().replace(/[,]/g," ")+" ";
+  let bed=null,wake=null,hrs=null,q=null;
+  const span=/\b(h\b|hr|hrs|hour)/.test(t)&&!/(a\.?m|p\.?m|:\d{2})/.test(t) ? null : t.match(/(?:from\s*)?(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?\s*(?:to|until|till|-|–|and woke(?:\s*up)?(?:\s*at)?)\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?/);
+  if(span){
+    let b=+span[1], w=+span[4];
+    let bm=span[3], wm=span[6];
+    if(!bm) bm = (b>=8&&b<=11)||b===12 ? "pm" : (b<=7?"pm":"pm");
+    if(!wm) wm = (w>=1&&w<=11) ? "am" : "am";
+    bed=to24(span[1],span[2],bm); wake=to24(span[4],span[5],wm);
+  } else {
+    const bm=t.match(/(?:bed|lights out|went to bed|asleep)\s*(?:at)?\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?(?!\s*(?:h\b|hr|hour|min))/);
+    const wm=t.match(/(?:woke|awake|got up)\s*(?:up)?\s*(?:at)?\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?(?!\s*(?:h\b|hr|hour|min))/);
+    if(bm) bed=to24(bm[1],bm[2],bm[3]||((+bm[1]>=8||+bm[1]<=1)?"pm":"pm"));
+    if(wm) wake=to24(wm[1],wm[2],wm[3]||"am");
+  }
+  const hm=t.match(/(\d+(?:\.\d+)?)\s*(?:and\s*a\s*half\s*)?(?:h\b|hr|hrs|hour)/);
+  if(hm){ hrs=parseFloat(hm[1]); if(/and a half/.test(t)) hrs+=0.5; }
+  else { const wn=t.match(/\b([a-z]+)\s*(?:and\s*a\s*half\s*)?hours?\b/);
+    if(wn&&NUMW[wn[1]]!=null){ hrs=NUMW[wn[1]]; if(/and a half\s*hour/.test(t)) hrs+=0.5; } }
+  const mins=t.match(/(\d+)\s*min/); if(hrs!=null&&mins) hrs+=(+mins[1])/60;
+
+  if(/\b(terrible|awful|dreadful|horrible|very badly|really bad)\b/.test(t)) q=1;
+  else if(/\b(bad|badly|poor|poorly|rough|restless|broken)\b/.test(t)) q=2;
+  else if(/\b(ok|okay|alright|average|fine|so so|decent)\b/.test(t)) q=3;
+  else if(/\b(good|well|solid|fairly well|quite well|pretty well)\b/.test(t)) q=4;
+  else if(/\b(great|excellent|amazing|perfect|deep|best)\b/.test(t)) q=5;
+  const qn=t.match(/quality\s*(?:of)?\s*([1-5])/); if(qn) q=+qn[1];
+  return {bed,wake,hrs,q};
+}
+function bestFood(phrase,db){
+  phrase=phrase.replace(/\btoast\b/gi,"bread").replace(/\bchicken breasts?\b/gi,"chicken breast");
+  const words=phrase.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/)
+    .filter(w=>w.length>2 && !["the","and","some","with","was","had","ate","eat","for","cup","cups","bowl","plate","serving","servings","of","food","meal","today","lunch","dinner","breakfast","snack"].includes(w));
+  if(!words.length) return null;
+  let best=null,score=0;
+  db.forEach(f=>{
+    const n=f.n.toLowerCase(); let s=0;
+    words.forEach(w=>{
+      if(n.includes(w)) s+=2;
+      else if(w.endsWith("s")&&n.includes(w.slice(0,-1))) s+=2;
+      else if(n.split(/[^a-z]+/).some(p=>p.startsWith(w.slice(0,4)))) s+=1;
+    });
+    const head=n.split(",")[0].trim().split(/\s+/);
+    words.forEach(w=>{ if(head[0]===w||head[0]===w.replace(/s$/,"")) s+=3;
+                       else if(head.includes(w)) s+=1; });
+    if(n.split(",")[0].trim()===words.join(" ")) s+=3;
+    if(s>score){score=s;best=f;}
+  });
+  return score>=2?{food:best,score:score}:null;
+}
+function parseFood(raw,db){
+  if(/\b(no|nothing|didn'?t|did not|skipped|none)\b/.test(raw.toLowerCase())&&!/\d/.test(raw)) return [];
+  const parts=raw.toLowerCase()
+    .replace(/\b(i|had|ate|eat|for|breakfast|lunch|dinner|snack|today|just|then|also)\b/g," ")
+    .split(/\s*(?:,|\band\b|\bplus\b|\bwith\b|\bon\b|\bover\b|\balong\b|\+|;|&)\s*/)
+    .map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  parts.forEach(p=>{
+    const m=bestFood(p,db); if(!m) { out.push({raw:p,food:null,qty:1}); return; }
+    let q=numFrom(p); if(q==null) q=1;
+    out.push({raw:p,food:m.food,qty:q});
+  });
+  return out;
+}
+
+function parseWeight(raw){
+  const t=" "+raw.toLowerCase().replace(/,/g," ")+" ";
+  let w=null,unit=null,bf=null;
+  let m=t.match(/(\d{2,3}(?:\.\d+)?)\s*(lbs?|pounds?|kgs?|kilos?|kilograms?)/);
+  if(m){ w=parseFloat(m[1]); unit=/k/.test(m[2])?"kg":"lb"; }
+  else { const n=t.match(/(?:weigh(?:ed|t)?|was|am|at)\s*(\d{2,3}(?:\.\d+)?)/);
+         if(n){ w=parseFloat(n[1]); unit=w<100?"kg":"lb"; }
+         else { const b=t.match(/\b(\d{2,3}(?:\.\d+)?)\b/); if(b){ w=parseFloat(b[1]); unit=w<100?"kg":"lb"; } } }
+  const f=t.match(/(\d{1,2}(?:\.\d+)?)\s*%?\s*(?:body\s*fat|bf|fat)/) || t.match(/(?:body\s*fat|bf)\s*(?:of|at|is)?\s*(\d{1,2}(?:\.\d+)?)/);
+  if(f) bf=parseFloat(f[1]);
+  if(w==null) return null;
+  if(unit==="kg") w=w*2.20462;
+  if(w<80||w>400) return null;
+  return {lb:Math.round(w*10)/10, bf:bf};
+}
+
+function parseStrength(raw,plan){
+  const t=raw.trim(); if(!t) return null;
+  const all=[]; Object.keys(plan||{}).forEach(d=>plan[d].ex.forEach(e=>all.push({n:e.n,day:d})));
+  const low=t.toLowerCase();
+  let hit=null,score=0;
+  all.forEach(e=>{const n=e.n.toLowerCase();
+    let s=0; n.split(/\s+/).forEach(w=>{if(w.length>2&&low.includes(w))s+=2;});
+    if(low.includes(n))s+=4;
+    if(s>score){score=s;hit=e;}});
+  if(!hit||score<2) return null;
+  const sets=[];
+  const pairs=t.match(/(\d+(?:\.\d+)?)\s*(?:x|×|\*|for|@)\s*(\d+)/gi)||[];
+  pairs.forEach(p=>{const m=p.match(/(\d+(?:\.\d+)?)\s*(?:x|×|\*|for|@)\s*(\d+)/i);
+    if(m) sets.push({w:parseFloat(m[1]),r:parseInt(m[2])});});
+  if(!sets.length){
+    const w=t.match(/(\d{2,3}(?:\.\d+)?)\s*(?:lbs?|pounds?)?/);
+    const r=t.match(/(\d{1,2})\s*(?:reps?)/i);
+    if(w&&r) sets.push({w:parseFloat(w[1]),r:parseInt(r[1])});
+  }
+  if(!sets.length) return null;
+  return {n:hit.n,day:hit.day,sets:sets};
+}
+
+const FOODS=`Chicken breast, cooked|165|31|0|3.6|0|170|1 breast
+Chicken thigh, cooked|209|26|0|10.9|0|130|1 thigh
+Turkey breast, cooked|135|30|0|1|0|150|1 portion
+Lean ground beef, cooked|250|26|0|15|0|150|1 portion
+Steak, sirloin, cooked|271|27|0|18|0|225|1 steak
+Pork tenderloin, cooked|143|26|0|3.5|0|150|1 portion
+Bacon, cooked|541|37|1.4|42|0|24|3 slices
+Salmon, cooked|206|22|0|13|0|170|1 fillet
+Tuna, canned in water|116|26|0|1|0|142|1 can
+Cod, cooked|105|23|0|0.9|0|170|1 fillet
+Shrimp, cooked|99|24|0.2|0.3|0|85|1 portion
+Tilapia, cooked|129|26|0|2.7|0|150|1 fillet
+Egg, whole|155|13|1.1|11|1.1|50|1 large egg
+Egg white|52|11|0.7|0.2|0.7|33|1 white
+Whey protein powder|380|78|8|5|4|30|1 scoop
+Casein protein powder|360|75|8|3|4|30|1 scoop
+Greek yogurt, plain 2%|73|10|3.9|1.9|3.2|170|1 cup
+Cottage cheese, 2%|84|11|4.3|2.3|4.1|226|1 cup
+Milk, 2%|50|3.3|4.8|2|4.8|244|1 cup
+Milk, skim|34|3.4|5|0.2|5|244|1 cup
+Cheddar cheese|403|25|1.3|33|0.5|28|1 slice
+Mozzarella, part skim|254|24|2.8|16|1.2|28|1 oz
+Parmesan, grated|420|38|4.1|28|0.9|5|1 tbsp
+Butter|717|0.9|0.1|81|0.1|14|1 tbsp
+Olive oil|884|0|0|100|0|14|1 tbsp
+Peanut butter|588|25|20|50|9|32|2 tbsp
+Almond butter|614|21|19|56|4.4|32|2 tbsp
+Almonds|579|21|22|50|4.4|28|1 oz
+Walnuts|654|15|14|65|2.6|28|1 oz
+Cashews|553|18|30|44|5.9|28|1 oz
+Peanuts|567|26|16|49|4.7|28|1 oz
+Avocado|160|2|9|15|0.7|150|1 avocado
+Oats, dry|389|17|66|7|1|40|1/2 cup dry
+Oatmeal, cooked|71|2.5|12|1.5|0.3|234|1 cup
+White rice, cooked|130|2.7|28|0.3|0.1|186|1 cup
+Brown rice, cooked|112|2.6|24|0.9|0.4|195|1 cup
+Quinoa, cooked|120|4.4|21|1.9|0.9|185|1 cup
+Pasta, cooked|158|5.8|31|0.9|0.6|140|1 cup
+Whole wheat bread|247|13|41|3.4|6|28|1 slice
+White bread|265|9|49|3.2|5|25|1 slice
+Bagel, plain|257|10|50|1.5|5.7|95|1 bagel
+Tortilla, flour|306|8|51|7.9|2.5|45|1 tortilla
+Potato, baked|93|2.5|21|0.1|1.2|173|1 potato
+Sweet potato, baked|90|2|21|0.1|6.5|150|1 potato
+French fries|312|3.4|41|15|0.3|117|1 medium
+Cereal, bran flakes|321|10|80|1.9|18|40|1 cup
+Granola|471|10|64|20|24|55|1/2 cup
+Banana|89|1.1|23|0.3|12|118|1 banana
+Apple|52|0.3|14|0.2|10|182|1 apple
+Orange|47|0.9|12|0.1|9|131|1 orange
+Blueberries|57|0.7|14|0.3|10|148|1 cup
+Strawberries|32|0.7|7.7|0.3|4.9|152|1 cup
+Grapes|69|0.7|18|0.2|16|151|1 cup
+Watermelon|30|0.6|7.6|0.2|6.2|152|1 cup
+Pineapple|50|0.5|13|0.1|10|165|1 cup
+Mango|60|0.8|15|0.4|14|165|1 cup
+Broccoli, cooked|35|2.4|7.2|0.4|1.4|156|1 cup
+Spinach, raw|23|2.9|3.6|0.4|0.4|30|1 cup
+Kale, raw|49|4.3|9|0.9|2.3|67|1 cup
+Carrots|41|0.9|10|0.2|4.7|128|1 cup
+Green beans|31|1.8|7|0.2|3.3|125|1 cup
+Bell pepper|31|1|6|0.3|4.2|149|1 cup
+Tomato|18|0.9|3.9|0.2|2.6|123|1 tomato
+Cucumber|15|0.7|3.6|0.1|1.7|104|1 cup
+Onion|40|1.1|9.3|0.1|4.2|110|1 cup
+Mushrooms|22|3.1|3.3|0.3|2|70|1 cup
+Asparagus|20|2.2|3.9|0.1|1.9|134|1 cup
+Black beans, cooked|132|8.9|24|0.5|0.3|172|1 cup
+Chickpeas, cooked|164|8.9|27|2.6|4.8|164|1 cup
+Lentils, cooked|116|9|20|0.4|1.8|198|1 cup
+Kidney beans, cooked|127|8.7|23|0.5|0.3|177|1 cup
+Tofu, firm|144|17|2.8|9|0.6|126|1/2 block
+Tempeh|192|20|7.6|11|0|84|1 serving
+Edamame|121|12|9|5|2.2|155|1 cup
+Hummus|166|8|14|10|0.3|30|2 tbsp
+Protein bar|380|30|38|10|10|60|1 bar
+Chocolate, dark 70%|598|7.8|46|43|24|28|1 oz
+Chocolate, milk|535|7.7|59|30|52|43|1 bar
+Ice cream, vanilla|207|3.5|24|11|21|66|1/2 cup
+Cookie, chocolate chip|488|5.7|64|24|36|16|1 cookie
+Potato chips|536|7|53|34|0.3|28|1 oz
+Popcorn, air popped|387|13|78|4.5|0.9|8|1 cup
+Pizza, cheese|266|11|33|10|3.6|107|1 slice
+Hamburger, fast food|295|17|24|14|5|110|1 burger
+Sushi roll, salmon|145|6|30|1.5|3|170|1 roll
+Chicken curry|180|14|8|10|3|300|1 serving
+Pad thai|181|9|24|6|8|300|1 serving
+Caesar salad with chicken|190|13|6|13|2|250|1 bowl
+Burrito, chicken|206|11|25|7|2|380|1 burrito
+Sandwich, turkey|220|14|28|6|4|200|1 sandwich
+Soup, chicken noodle|36|2.1|4.2|1.2|0.6|245|1 cup
+Chili con carne|110|9|9|4.5|2|250|1 cup
+Beer|43|0.5|3.6|0|0|355|1 can
+Wine, red|85|0.1|2.6|0|0.6|148|1 glass
+Whisky / spirits|250|0|0|0|0|44|1 shot
+Coffee, black|1|0.1|0|0|0|240|1 cup
+Orange juice|45|0.7|10|0.2|8.4|248|1 cup
+Cola|41|0|11|0|11|355|1 can
+Sports drink|26|0|6.9|0|6|591|1 bottle
+Honey|304|0.3|82|0|82|21|1 tbsp
+Maple syrup|260|0|67|0|60|20|1 tbsp
+Sugar, white|387|0|100|0|100|4|1 tsp
+Creatine monohydrate|0|0|0|0|0|5|1 scoop`;
+
+/* Nutrition targets — set by the user, blank until then */
+let TGT=(()=>{try{const r=localStorage.getItem("vTargets_v1"); if(r) return JSON.parse(r);}catch(e){}
+  return {kcal:0,p:0,c:0,f:0};})();
+const FOODDB = FOODS.split("\n").map(l=>{const a=l.split("|");
+  return {n:a[0],kcal:+a[1],p:+a[2],c:+a[3],f:+a[4],s:+a[5],sg:+a[6],sl:a[7]};});
+
+const K="vLog_v1";
+const TGT_KEY="vTargets_v1";
+let DB=load(), day="D1", tab="home";
+let drafts=(()=>{try{const r=localStorage.getItem("kmDraft_v2");
+  if(r){const o=JSON.parse(r);
+    const age = o.ts ? (Date.now()-o.ts) : (o.date===dkeyBoot()?0:Infinity);
+    if(age < 10*60*60*1000) return o.d||{};}}catch(e){}
+  return {};})();
+const draftFor=d=>(drafts[d]=drafts[d]||{});
+function dkeyBoot(){const x=new Date();
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+function saveDraft(){try{localStorage.setItem("kmDraft_v2",
+  JSON.stringify({date:dkeyBoot(),ts:Date.now(),d:drafts}));}catch(e){}}
+function clearDraft(){delete drafts[day];
+  try{Object.keys(drafts).length?localStorage.setItem("kmDraft_v2",JSON.stringify({date:dkeyBoot(),ts:Date.now(),d:drafts}))
+    :localStorage.removeItem("kmDraft_v2");}catch(e){}}
+function load(){
+  let o=null;
+  try{const r=localStorage.getItem(K); if(r) o=JSON.parse(r);}catch(e){o=null;}
+  if(!o||typeof o!=="object") o={};
+  const fresh=JSON.parse(JSON.stringify(SEED));
+  // plan: repair structure, then merge in any exercises added to SEED since install
+  if(!o.plan||typeof o.plan!=="object") o.plan=fresh;
+  Object.keys(fresh).forEach(k=>{
+    const d=o.plan[k];
+    if(!d||typeof d!=="object"||!Array.isArray(d.ex)) { o.plan[k]=fresh[k]; return; }
+    d.label=d.label||fresh[k].label; d.sub=d.sub||fresh[k].sub;
+    d.ex=d.ex.filter(e=>e&&typeof e.n==="string");
+    fresh[k].ex.forEach(se=>{ if(!d.ex.some(e=>e.n===se.n)) d.ex.push(se); });
+  });
+  Object.keys(o.plan).forEach(k=>{ if(!fresh[k]&&(!o.plan[k]||!Array.isArray(o.plan[k].ex))) delete o.plan[k]; });
+  // arrays
+  o.sessions=Array.isArray(o.sessions)?o.sessions.filter(s=>s&&s.date&&Array.isArray(s.sets)
+      &&s.sets.every(x=>x&&typeof x.n==="string"&&isFinite(x.w)&&isFinite(x.r))):[];
+  o.sleep=Array.isArray(o.sleep)?o.sleep.filter(s=>s&&s.date&&isFinite(s.hrs)&&s.hrs>0&&s.hrs<=16):[];
+  o.weight=Array.isArray(o.weight)?o.weight.filter(w=>w&&w.date&&isFinite(w.lb)&&w.lb>=80&&w.lb<=400):[];
+  o.food=Array.isArray(o.food)?o.food.filter(f=>f&&f.date&&typeof f.n==="string"&&isFinite(f.kcal)):[];
+  o.customFoods=Array.isArray(o.customFoods)?o.customFoods.filter(f=>f&&typeof f.n==="string"&&isFinite(f.kcal)):[];
+  o._del=Array.isArray(o._del)?o._del.filter(x=>typeof x==="string"):[];
+  o._wipe=isFinite(o._wipe)?o._wipe:0;
+  return o;
+}
+function daysAgo(n){const x=new Date();x.setDate(x.getDate()-n);
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+function windowAvg(list,days,field){
+  const cut=daysAgo(days-1);
+  const w=(list||[]).filter(x=>x&&x.date>=cut);
+  return w.length?{v:w.reduce((a,b)=>a+b[field],0)/w.length,n:w.length}:null;
+}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function tomb(id){ if(!id) return; DB._del=DB._del||[]; if(!DB._del.includes(id)) DB._del.push(id);
+  if(DB._del.length>800) DB._del=DB._del.slice(-800); }
+function mergeStored(mine){
+  let theirs=null;
+  try{const r=localStorage.getItem(K); if(r) theirs=JSON.parse(r);}catch(e){}
+  if(!theirs||typeof theirs!=="object") return mine;
+  const out=JSON.parse(JSON.stringify(mine));
+  out._del=Array.from(new Set((out._del||[]).concat(theirs._del||[])));
+  const dead=new Set(out._del);
+  const wipe=Math.max(out._wipe||0, theirs._wipe||0);
+  out._wipe=wipe;
+  // if this copy wiped, drop anything older than the wipe
+  ["sessions","food","sleep","weight"].forEach(k=>{
+    out[k]=(out[k]||[]).filter(x=>x && !dead.has(x._id) && !(wipe && (x._t||0)<wipe));
+  });
+  ["sessions","food"].forEach(k=>{
+    const seen=new Set(out[k].map(x=>x._id).filter(Boolean));
+    (theirs[k]||[]).forEach(x=>{
+      if(!x||!x._id) return;
+      if(dead.has(x._id)) return;
+      if(wipe && (x._t||0)<wipe) return;
+      if(!seen.has(x._id)) out[k].push(x);
+    });
+    out[k].sort((a,b)=>(a.date<b.date?-1:1));
+  });
+  ["sleep","weight"].forEach(k=>{
+    const dates=new Set(out[k].map(x=>x.date));
+    (theirs[k]||[]).forEach(x=>{
+      if(!x||!x.date) return;
+      if(dead.has(x._id)) return;
+      if(wipe && (x._t||0)<wipe) return;
+      if(!dates.has(x.date)) out[k].push(x);
+    });
+    out[k].sort((a,b)=>(a.date<b.date?-1:1));
+  });
+  const names=new Set((out.customFoods||[]).map(x=>x&&x.n&&x.n.toLowerCase()));
+  (theirs.customFoods||[]).forEach(x=>{ if(x&&x.n&&!names.has(x.n.toLowerCase())) out.customFoods.push(x); });
+  return out;
+}
+function stampAll(){
+  const now=Date.now();
+  ["sessions","food","sleep","weight"].forEach(k=>(DB[k]||[]).forEach(x=>{
+    if(x&&!x._id)x._id=uid(); if(x&&!x._t)x._t=now; }));
+}
+function save(){
+  stampAll();
+  DB=mergeStored(DB);
+  let payload;
+  try{ payload=JSON.stringify(DB); }
+  catch(e){ alert("Could not prepare your data to save. Export a CSV before closing the app."); return false; }
+  try{
+    localStorage.setItem(K,payload);
+    if(localStorage.getItem(K)!==payload) throw new Error("verify failed");
+    return true;
+  }catch(e){
+    alert("SAVE FAILED — device storage is full or blocked.\n\nThis entry was NOT saved. Free up space, or open Progress and Export CSV to rescue what is already stored.");
+    return false;
+  }
+}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),2100);}
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const e1rm=(w,r)=>(!w||!r)?0:w*(1+r/30);
+const dkey=d=>{const x=d||new Date();
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
+function hrs(b,w){if(!b||!w)return 0;const[bh,bm]=b.split(":").map(Number),[wh,wm]=w.split(":").map(Number);
+  let m=(wh*60+wm)-(bh*60+bm);if(m<=0)m+=1440;if(m>=1440)return 0;return m/60;}
+function lastFor(n){for(let i=DB.sessions.length-1;i>=0;i--){const h=DB.sessions[i].sets.filter(x=>x.n===n);
+  if(h.length)return{date:DB.sessions[i].date,sets:h};}return null;}
+function bestFor(n){let b=0;DB.sessions.forEach(s=>s.sets.forEach(x=>{if(x.n===n){const v=e1rm(x.w,x.r);if(v>b)b=v;}}));return b;}
+document.getElementById("dt").textContent=new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+
+const TABS=[["home","Home"],["D1","Train · D1"],["D2","D2"],["D3","D3"],["sleep","Sleep"],["food","Food"],["weight","Weight"],["prog","Progress"]];
+function nav(){document.getElementById("nav").innerHTML=TABS.map(([k,l])=>
+  `<button class="nb ${tab===k?'on':''}" data-k="${k}">${l}</button>`).join("");
+  document.querySelectorAll(".nb").forEach(b=>b.onclick=()=>{tab=b.dataset.k;if(["D1","D2","D3"].includes(tab))day=tab;render();});}
+
+function render(){nav();
+  const v=document.getElementById("view"),bar=document.getElementById("bar");
+  if(tab==="home"){v.innerHTML=homeV();bar.innerHTML="";bar.style.display="none";document.getElementById("hm").classList.add("hide");
+    const go=(id,t)=>{const el=document.getElementById(id);if(el)el.onclick=()=>{tab=t;if(["D1","D2","D3"].includes(t))day=t;render();};};
+    go("goS",window.__next||day);go("goZ","sleep");go("goF","food");go("goW","weight");go("goP","prog");return;}
+  bar.style.display="flex";document.getElementById("hm").classList.remove("hide");
+  if(tab==="weight"){v.innerHTML=weightV();bar.innerHTML=`<button class="btn gh2" id="bk">Back</button><button class="btn" id="wsv">Save weight</button>`;
+    document.getElementById("bk").onclick=()=>{tab="home";render();};
+    document.getElementById("wsv").onclick=()=>saveWeight(document.getElementById("wlb").value,document.getElementById("wbf").value);
+    wireWeight();wireImp("weight");return;}
+  if(tab==="food"){v.innerHTML=foodV();bar.innerHTML=`<button class="btn gh2" id="x">Export</button><button class="btn" id="bk">Back</button>`;
+    document.getElementById("x").onclick=csv;document.getElementById("bk").onclick=()=>{tab="home";render();};wireFood();wireFoodSay();wireImp("food");wireTargets();return;}
+  if(tab==="sleep"){v.innerHTML=sleepV();bar.innerHTML=`<button class="btn gh2" id="bk">Back</button><button class="btn gh2" id="x">Export</button><button class="btn" id="ss">Save last night</button>`;
+    document.getElementById("bk").onclick=()=>{tab="home";render();};document.getElementById("x").onclick=csv;document.getElementById("ss").onclick=saveSleep;wireSleep();wireSleepSay();wireImp("sleep");return;}
+  if(tab==="prog"){v.innerHTML=progV();
+    setTimeout(()=>{document.querySelectorAll(".exh").forEach(el=>el.onclick=()=>{
+      const c=document.getElementById("exc"+el.dataset.ex);
+      c.style.display=c.style.display==="none"?"block":"none";});
+      document.querySelectorAll("[data-sess]").forEach(el=>el.onclick=()=>{
+        if(confirm("Delete this session? This cannot be undone.")){
+          const s=DB.sessions[+el.dataset.sess]; if(s) tomb(s._id);
+          DB.sessions.splice(+el.dataset.sess,1);save();render();toast("Session deleted");}});},0);
+    bar.innerHTML=`<button class="btn gh2" id="x">Export CSV</button><button class="btn" id="bk">Back</button>`;
+    document.getElementById("x").onclick=csv;document.getElementById("bk").onclick=()=>{tab="home";render();};wireImp("strength");return;}
+  v.innerHTML=`<div class="wrap">
+    <div class="say">
+      <textarea id="tsay" placeholder="Say or type the session — &quot;leg press 90 x 12, 90 x 10; hip thrust 60 x 12&quot;"></textarea>
+      <div class="hintl">Tap the mic on your phone keyboard. Separate exercises with a semicolon or a new line. Nothing saves until you confirm.</div>
+      <div class="row"><button class="clr" id="tsayc">Clear</button><button class="go2" id="tsayg" style="background:linear-gradient(180deg,#F58A6A,var(--fiery));color:#fff">Read it</button></div>
+      <div id="tconf"></div>
+    </div>
+    ${Object.keys(draftFor(day)).length?`<div class="cue" style="margin:0 2px 12px">Unsaved ${day} entries from earlier today were restored. Tap <b>Save session</b> when you're done.</div>`:""}
+    <h2 class="sec">${DB.plan[day].sub}</h2>`+DB.plan[day].ex.map(cardV).join("")+
+    `<div class="addf"><input id="nx" placeholder="Add exercise to ${day}"><button id="ab">+</button></div>
+     <div class="note">Three sets. Aim RIR 2–3 · 1–2 · 0–1 — not every set to failure. When all three reach 10 reps, add 5 lbs.</div></div>`;
+  bar.innerHTML=`<button class="btn gh2" id="cl">Clear</button><button class="btn" id="sv">Save session</button>`;wire();wireTrainSay();}
+
+function cardV(x){const L=lastFor(x.n),d=draftFor(day)[x.n]||[{},{},{}];
+  const top=[0,1,2].every(i=>(+((d[i]||{}).r)||0)>=10);
+  const kk=x.k||"w";
+  const lt=L?(kk==="t"?`<b>${L.sets.map(s=>s.r).join("/")}</b> min`
+            :kk==="b"?`<b>${L.sets.map(s=>s.r).join("/")}</b> reps`
+            :`<b>${L.sets[0].w}</b> × ${L.sets.map(s=>s.r).join("/")}`):"—";
+  const ld=L?new Date(L.date).toLocaleDateString(undefined,{day:"numeric",month:"short"}):"no history";
+  return `<div class="card ${top?'flag':''}"><div class="chead"><div class="cn"><b>${esc(x.n)}</b><i>${esc(x.t)}</i></div>${x.t==="Custom"?`<button class="drop" data-delex="${esc(x.n)}" style="color:var(--hot);background:none;border:0;font-size:16px;padding:2px 6px">×</button>`:""}
+    <div class="cl">${lt}<span>${ld}</span></div><span class="chev">›</span></div>
+    <div class="cbody">${[0,1,2].map(s=>rowV(x,s,L)).join("")}
+    ${top&&(x.k||"w")==="w"?`<div class="cue go">All three sets at 10 — add a little weight next session.</div>`:``}
+    ${x.w===0&&!L?`<div class="cue">New. Start light; set 3 should be hard at 8 reps.</div>`:``}</div></div>`;}
+function rowV(x,s,L){const d=(draftFor(day)[x.n]||[])[s]||{},g=L&&L.sets[s];
+  const aim=s===0?"2–3":s===1?"1–2":"0–1";
+  const k=x.k||"w";
+  if(k==="t") return `<div class="srow" data-x="${esc(x.n)}" data-s="${s}"><span class="sn">${s+1}</span>
+   <div class="fg" style="flex:1"><span class="fl">Minutes</span>
+     <input class="n r" inputmode="decimal" value="${d.r??""}" placeholder="${g?g.r:""}">
+     <span class="gh">${g?"was "+g.r+" min":""}</span></div>
+   <div class="fg" style="flex:1.5"><span class="fl">How hard · aim ${aim}</span>
+     <div class="pk">${[3,2,1,0].map(r=>`<button class="pb ${d.rir===r?'on':''}" data-r="${r}">${r}</button>`).join("")}</div>
+     <span class="gh">${g&&g.rir!=null?"was "+g.rir:""}</span></div></div>`;
+  if(k==="b") return `<div class="srow" data-x="${esc(x.n)}" data-s="${s}"><span class="sn">${s+1}</span>
+   <div class="fg" style="flex:1"><span class="fl">Reps</span>
+     <input class="n r" inputmode="numeric" value="${d.r??""}" placeholder="${g?g.r:""}">
+     <span class="gh">${g?"was "+g.r:""}</span></div>
+   <div class="fg" style="flex:1.5"><span class="fl">RIR · aim ${aim}</span>
+     <div class="pk">${[3,2,1,0].map(r=>`<button class="pb ${d.rir===r?'on':''}" data-r="${r}">${r}</button>`).join("")}</div>
+     <span class="gh">${g&&g.rir!=null?"was "+g.rir:""}</span></div></div>`;
+  return `<div class="srow" data-x="${esc(x.n)}" data-s="${s}"><span class="sn">${s+1}</span>
+   <div class="fg" style="flex:1.1"><span class="fl">Weight</span>
+     <input class="n w" inputmode="numeric" value="${d.w??""}" placeholder="${g?g.w:(s===0?x.w||"":"")}">
+     <span class="gh">${g?"was "+g.w:""}</span></div>
+   <div class="fg" style="flex:.75"><span class="fl">Reps</span>
+     <input class="n r" inputmode="numeric" value="${d.r??""}" placeholder="${g?g.r:""}">
+     <span class="gh">${g?"was "+g.r:""}</span></div>
+   <div class="fg" style="flex:1.5"><span class="fl">RIR · aim ${aim}</span>
+     <div class="pk">${[3,2,1,0].map(r=>`<button class="pb ${d.rir===r?'on':''}" data-r="${r}">${r}</button>`).join("")}</div>
+     <span class="gh">${g&&g.rir!=null?"was "+g.rir:""}</span></div></div>`;}
+function wire(){
+  document.querySelectorAll(".chead").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
+  document.querySelectorAll(".srow").forEach(row=>{const n=row.dataset.x,s=+row.dataset.s;
+    const put=(k,v)=>{const D=draftFor(day);D[n]=D[n]||[{},{},{}];D[n][s][k]=v;saveDraft();};
+    const wEl=row.querySelector(".w");
+    if(wEl) wEl.oninput=e=>put("w",e.target.value===""?undefined:+e.target.value);
+    row.querySelector(".r").oninput=e=>put("r",e.target.value===""?undefined:+e.target.value);
+    row.querySelectorAll(".pb").forEach(b=>b.onclick=()=>{put("rir",+b.dataset.r);
+      row.querySelectorAll(".pb").forEach(o=>o.classList.remove("on"));b.classList.add("on");});});
+  document.querySelectorAll("[data-delex]").forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const n=b.dataset.delex;
+    if(confirm('Remove "'+n+'" from '+day+'? Logged sets are kept.')){
+      DB.plan[day].ex=DB.plan[day].ex.filter(x=>x.n!==n); save(); render(); toast("Removed");}});
+  document.getElementById("ab").onclick=()=>{const i=document.getElementById("nx"),n=i.value.trim();
+    if(!n)return;DB.plan[day].ex.push({n:n,t:"Custom",w:0});save();i.value="";render();toast("Added "+n);};
+  document.getElementById("sv").onclick=saveSess;
+  document.getElementById("cl").onclick=()=>{if(confirm("Clear "+day+"'s entries?")){clearDraft();render();}};}
+function wireTrainSay(){
+  const ta=document.getElementById("tsay"), out=document.getElementById("tconf");
+  if(!ta) return;
+  document.getElementById("tsayc").onclick=()=>{ta.value="";out.innerHTML="";};
+  document.getElementById("tsayg").onclick=()=>{
+    const txt=ta.value.trim(); if(!txt){toast("Nothing to read");return;}
+    const lines=txt.split(/[;\n]+/).map(s=>s.trim()).filter(Boolean);
+    const good=[], bad=[];
+    lines.forEach(l=>{const r=parseStrength(l,DB.plan); if(r&&r.sets.length) good.push(r); else bad.push(l);});
+    if(!good.length){ out.innerHTML=`<div class="conf" style="border-color:var(--amber);background:rgba(240,169,56,.09)">
+      <h4 style="color:var(--amber)">Could not read that</h4>
+      <div class="miss" style="color:var(--amber)">Try "leg press 90 x 12, 90 x 10". Separate exercises with a semicolon.</div></div>`; return; }
+    out.innerHTML=`<div class="conf" style="border-color:var(--amber);background:rgba(240,169,56,.09)">
+      <h4 style="color:var(--amber)">Check before saving</h4>`+
+      good.map((g,i)=>`<div class="ci"><span class="nm">${esc(g.n)}
+        <u>${g.sets.map(s=>s.w+" × "+s.r).join("  ·  ")}${g.day!==day?`  ·  normally ${g.day}`:""}</u></span>
+        <button class="drop" data-drop="${i}">×</button></div>`).join("")+
+      (bad.length?`<div class="miss">Not recognised: ${bad.map(esc).join(" · ")}</div>`:"")+
+      `<div class="row"><button class="go2" id="tcommit" style="background:linear-gradient(180deg,#F58A6A,var(--fiery));color:#fff">Log ${good.reduce((a,g)=>a+g.sets.length,0)} sets</button></div></div>`;
+    const live=good.slice();
+    out.querySelectorAll("[data-drop]").forEach(b=>b.onclick=()=>{live[+b.dataset.drop]=null;
+      b.closest(".ci").style.opacity=".35";});
+    document.getElementById("tcommit").onclick=()=>{
+      const sets=[]; live.forEach(g=>{ if(!g) return;
+        g.sets.forEach((s,i)=>{ if(s.w>0&&s.w<=2000&&s.r>0&&s.r<=100)
+          sets.push({n:g.n,set:i+1,w:s.w,r:s.r,rir:s.rir??null}); }); });
+      if(!sets.length){toast("Nothing selected");return;}
+      DB.sessions.push({date:new Date().toISOString(),day:day,sets:sets});
+      save(); render(); toast(sets.length+" sets logged");};
+  };
+}
+function kindOf(name){for(const d in DB.plan){const e=(DB.plan[d].ex||[]).find(x=>x.n===name); if(e) return e.k||"w";} return "w";}
+function saveSess(){const sets=[];let rejected=0;
+  const D=draftFor(day);
+  Object.keys(D).forEach(n=>D[n].forEach((s,i)=>{
+    const kind=(kindOf(n)||"w");
+    const W=+s.w, R=+s.r;
+    if(kind==="w"){ if(W>0&&W<=2000&&R>0&&R<=100) sets.push({n:n,set:i+1,w:W,r:R,rir:s.rir??null,k:"w"});
+      else if(s.w!=null||s.r!=null) rejected++; }
+    else { const lim=kind==="t"?300:200;
+      if(R>0&&R<=lim) sets.push({n:n,set:i+1,w:0,r:R,rir:s.rir??null,k:kind});
+      else if(s.r!=null) rejected++; }}));
+  if(!sets.length){toast(rejected?"Check those numbers":"Nothing to save");return;}
+  if(rejected){toast(rejected+" set"+(rejected>1?"s":"")+" skipped — out of range");}
+  DB.sessions.push({date:new Date().toISOString(),day:day,sets:sets});save();clearDraft();render();toast("Saved "+sets.length+" sets");}
+
+function homeV(){
+  const S=DB.sleep, last=S[S.length-1];
+  const _w7=windowAvg(S,7,"hrs"); const a7=_w7&&_w7.v;
+  const loggedToday=!!S.find(x=>x.date===dkey());
+  const lastSess=DB.sessions.slice().sort((a,b)=>a.date<b.date?-1:1)[DB.sessions.length-1];
+  let since="";
+  if(lastSess){
+    const a=new Date(lastSess.date); a.setHours(0,0,0,0);
+    const bnow=new Date(); bnow.setHours(0,0,0,0);
+    const dd=Math.round((bnow-a)/864e5);
+    since=dd<=0?"logged today":dd===1?"yesterday":dd+" days ago";}
+  const order=["D1","D2","D3"];
+  const next=lastSess&&order.includes(lastSess.day)?order[(order.indexOf(lastSess.day)+1)%3]:"D1"; window.__next=next;
+  const sub=DB.plan[next].sub;
+  const sc=a7?(a7<6.5?"bad":a7>=7.5?"ok":"hi"):"";
+  const ft=(DB.food||[]).filter(x=>x.date===dkey());
+  const fk=Math.round(ft.reduce((a,b)=>a+b.kcal,0));
+  const fp=Math.round(ft.reduce((a,b)=>a+b.p,0));
+  const W=DB.weight||[], lw=W[W.length-1];
+  const lwd=lw?new Date(lw.date+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"}):"";
+  return `<div class="wrap">
+   <div class="hero" style="padding:20px 6px 16px"><h1 style="font-size:30px">Vanessa's <em>Training Log</em></h1>
+     <div class="hr2"></div>
+     <div class="dd">${new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</div></div>
+   <div class="duo">
+     <button class="big" id="goS">
+       <svg viewBox="0 0 24 24"><path d="M2 10v4M5 7v10M8 9.5v5M16 9.5v5M19 7v10M22 10v4M8 12h8"/></svg>
+       <span class="fig">${next}</span>
+       <span class="lbl">Log Strength</span>
+       <span class="cap"><b>${sub}</b><br>${lastSess?(since==="logged today"?"Logged today":since==="yesterday"?"Last: yesterday":"Last: "+since):"Not started"}</span></button>
+     <button class="big n" id="goZ">
+       <svg viewBox="0 0 24 24"><path d="M20.5 14.6A8.5 8.5 0 1 1 9.4 3.5a6.7 6.7 0 0 0 11.1 11.1z"/></svg>
+       <span class="fig ${sc}">${a7?a7.toFixed(1):"—"}<u>${a7?"h":""}</u></span>
+       <span class="lbl">Log Sleep</span>
+       <span class="cap"><b>${a7?"last 7 days ("+_w7.n+" logged)":"No nights yet"}</b><br>${loggedToday?"Last night logged":last?"Last "+last.hrs.toFixed(1)+"h":"Start tonight"}</span></button>
+   </div>
+   <button class="wide" id="goF">
+     <svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M8 13v8M17 3c-1.5 1.5-2 4-2 6s.5 3 2 3v9"/></svg>
+     <span class="tx"><b>Log Food</b><i>${fk?fp+"g protein of "+TGT.p+"g today":"Nothing logged today"}</i></span>
+     <span class="num"><span class="k">${fk||0}</span><span class="u">kcal today</span></span>
+   </button>
+   <button class="wide w2" id="goW">
+     <svg viewBox="0 0 24 24"><path d="M12 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M5 21h14l-2.5-11h-9L5 21z"/><path d="M9 14h6"/></svg>
+     <span class="tx"><b>Log Weight</b><i>${lw?(lwd+(lw.bf?" · "+lw.bf+"% body fat":"")):"Nothing logged yet"}</i></span>
+     <span class="num"><span class="k">${lw?lw.lb:"—"}</span><span class="u">${lw?"lbs":"tap to log"}</span></span>
+   </button>
+   <button class="wide w3" id="goP">
+     <svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 8-9"/><path d="M15 6h5v5"/></svg>
+     <span class="tx"><b>Progress</b><i>strength, sleep, food and weight trends</i></span>
+     <span class="num"><span class="k">›</span></span>
+   </button>
+   <div class="hint">Everything is stored on this phone only.</div>
+  </div>`;}
+
+function weightV(){
+  const W=(DB.weight||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+  const last=W[W.length-1];
+  const g7=windowAvg(W,7,"lb"), g30=windowAvg(W,30,"lb");
+  const a7=g7&&g7.v, a30=g30&&g30.v;
+  let trend=null,trendN=0;
+  (()=>{ if(W.length<2) return;
+    let rec=W.filter(x=>x.date>=daysAgo(29));
+    if(rec.length<2) rec=W.slice(-4);
+    if(rec.length<2) return;
+    const f=rec[0], l=rec[rec.length-1];
+    const span=(new Date(l.date)-new Date(f.date))/864e5;
+    if(span>0){ trend=(l.lb-f.lb)/span*7; trendN=Math.round(span); } })();
+  const rows=W.slice(-20).reverse().map((x,i)=>{
+    const prev=W[W.length-2-i];
+    const d=prev?x.lb-prev.lb:null;
+    return `<div class="dl"><span class="a">${new Date(x.date+"T12:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})}
+      ${x.bf?`<u>${x.bf}% body fat</u>`:""}</span>
+      <span class="b">${x.lb.toFixed(1)} lbs${d!==null?`<u style="color:${d>0?"var(--brass)":d<0?"var(--ice)":"var(--dimmer)"}">${d>0?"+":""}${d.toFixed(1)}</u>`:""}</span></div>`;
+  }).join("")||`<div class="empty">Nothing logged yet.<br>Weigh in the same way each time — morning, after the bathroom, before eating.</div>`;
+  return `<div class="wrap">
+   ${W.length?`<div class="scards">
+     <div class="sc"><div class="v">${last.lb.toFixed(1)}<u>lb</u></div><div class="k">latest</div></div>
+     <div class="sc"><div class="v">${a7?a7.toFixed(1):"—"}<u>lb</u></div><div class="k">last 7 days${g7?` · ${g7.n}`:""}</div></div>
+     <div class="sc"><div class="v">${a30?a30.toFixed(1):"—"}<u>lb</u></div><div class="k">last 30 days${g30?` · ${g30.n}`:""}</div></div>
+   </div>`:""}
+   ${W.length>1?chartCard("Weight trend",W.length+" entries · dashed line is the 7-day average",W.map(x=>({v:x.lb,l:new Date(x.date+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})})),{color:"#E37FC4",color2:"#F5A0DC",avg:true,id:1}):""}
+   ${W.filter(x=>x.bf).length>1?chartCard("Body fat %","from entries where you recorded it",W.filter(x=>x.bf).map(x=>({v:x.bf,l:new Date(x.date+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})})),{color:"#F4714C",color2:"#F9B49C",id:2,invert:true}):""}
+   ${impPanel("weight")}
+      <div class="say">
+     <textarea id="wsay" placeholder="Say or type — &quot;132 lbs&quot; or &quot;132 lbs, 24% body fat&quot;"></textarea>
+     <div class="hintl">Tap the mic on your phone keyboard to dictate. Nothing saves until you confirm.</div>
+     <div class="row"><button class="clr" id="wsayc">Clear</button><button class="go2" id="wsayg" style="background:linear-gradient(180deg,#F7BAE4,var(--disco));color:#7A2E5C">Read it</button></div>
+     <div id="wconf"></div>
+   </div>
+   <div class="card open"><div class="chead" style="cursor:default"><div class="cn"><b>Or enter by hand</b>
+     <i>${new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</i></div></div>
+     <div class="cbody" style="display:block">
+       <div class="srow" style="border-bottom:0">
+         <div class="fg"><span class="fl">Weight (lbs)</span><input class="n" id="wlb" inputmode="decimal" placeholder="${last?last.lb:""}"></div>
+         <div class="fg"><span class="fl">Body fat % — optional</span><input class="n" id="wbf" inputmode="decimal" placeholder="${last&&last.bf?last.bf:""}"></div>
+       </div></div></div>
+   <h2 class="sec">History${trend?` · ${trend>0?"+":""}${trend.toFixed(2)} lbs/week over ${trendN} days`:""}</h2>${rows}
+   <div class="note">Weigh consistently — same time of day, same conditions. Day-to-day swings are mostly water; the 7-day average is the number worth reading.</div></div>`;}
+
+function wireWeight(){
+  const ta=document.getElementById("wsay"), out=document.getElementById("wconf");
+  if(!ta) return;
+  document.getElementById("wsayc").onclick=()=>{ta.value="";out.innerHTML="";};
+  document.getElementById("wsayg").onclick=()=>{
+    const txt=ta.value.trim(); if(!txt){toast("Nothing to read");return;}
+    const r=parseWeight(txt);
+    if(!r){ out.innerHTML=`<div class="conf" style="border-color:var(--disco);background:rgba(245,160,220,.16)">
+      <h4 style="color:#B0498E">Could not read that</h4>
+      <div class="miss" style="color:#B0498E">Try "132 lbs" or "60 kg, 24% body fat".</div></div>`; return; }
+    out.innerHTML=`<div class="conf" style="border-color:var(--disco);background:rgba(245,160,220,.16)">
+      <h4 style="color:#B0498E">Check before saving</h4>
+      <div class="ci"><span class="nm">Weight</span><b style="font-family:var(--mono)">${r.lb} lbs</b></div>
+      ${r.bf?`<div class="ci"><span class="nm">Body fat</span><b style="font-family:var(--mono)">${r.bf}%</b></div>`:""}
+      <div class="row"><button class="go2" id="wcommit" style="background:linear-gradient(180deg,#F7BAE4,var(--disco));color:#7A2E5C">Save</button></div></div>`;
+    document.getElementById("wcommit").onclick=()=>saveWeight(r.lb,r.bf);
+  };
+}
+function saveWeight(lb,bf){
+  if(!lb||lb<=0){toast("Enter a weight");return;}
+  const t=dkey(); DB.weight=DB.weight||[];
+  const i=DB.weight.findIndex(x=>x.date===t);
+  const rec={date:t,lb:+(+lb).toFixed(1),bf:bf?+(+bf).toFixed(1):null};
+  if(i>=0)DB.weight[i]=rec; else DB.weight.push(rec);
+  DB.weight.sort((a,b)=>a.date<b.date?-1:1);
+  save(); render(); toast(rec.lb+" lbs logged");
+}
+
+/* ---------- CHARTS ---------- */
+function spark(pts,o){
+  o=o||{};
+  const CAP=o.cap||120;
+  let ma=null;
+  if(o.avg&&pts.length>2){
+    const k=o.avgN||7;
+    ma=pts.map((_,i)=>{const s=pts.slice(Math.max(0,i-k+1),i+1);
+      return s.reduce((a,b)=>a+b.v,0)/s.length;});
+  }
+  if(pts.length>CAP){ const step=pts.length/CAP; const t=[],tm=[];
+    for(let i=0;i<CAP;i++){const j=Math.floor(i*step); t.push(pts[j]); if(ma) tm.push(ma[j]);}
+    t[CAP-1]=pts[pts.length-1]; if(ma) tm[CAP-1]=ma[ma.length-1];
+    pts=t; if(ma) ma=tm; } const W=o.w||330,H=o.h||100,P=8,B=16;
+  if(!pts.length) return "";
+  const ys=pts.map(p=>p.v).concat(ma||[]);
+  let lo=Math.min(...ys), hi=Math.max(...ys);
+  if(o.target!=null){lo=Math.min(lo,o.target);hi=Math.max(hi,o.target);}
+  if(hi===lo){hi=lo+1;lo=lo-1;}
+  const pad=(hi-lo)*0.18; lo-=pad; hi+=pad;
+  const X=i=>P+(i/Math.max(1,pts.length-1))*(W-P*2);
+  const Y=v=>H-B-((v-lo)/(hi-lo))*(H-B-P);
+  const d=pts.map((p,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ");
+  const area=d+` L ${X(pts.length-1).toFixed(1)} ${H-B} L ${X(0).toFixed(1)} ${H-B} Z`;
+  const c=o.color||"#63a882", c2=o.color2||c, id=o.id||0;
+  const grid=[0.25,0.5,0.75].map(f=>`<line x1="${P}" y1="${(P+(H-B-P)*f).toFixed(1)}" x2="${W-P}" y2="${(P+(H-B-P)*f).toFixed(1)}"
+    stroke="rgba(45,95,93,.07)" stroke-width="1"/>`).join("");
+  let avg="";
+  if(ma){
+    avg=`<path d="${ma.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" ")}"
+      fill="none" stroke="rgba(45,95,93,.55)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>`;}
+  let tgt="";
+  if(o.target!=null) tgt=`<line x1="${P}" y1="${Y(o.target).toFixed(1)}" x2="${W-P}" y2="${Y(o.target).toFixed(1)}"
+      stroke="#2D5F5D" stroke-opacity=".3" stroke-width="1.4" stroke-dasharray="3 5"/>
+    <text x="${W-P}" y="${(Y(o.target)-5).toFixed(1)}" text-anchor="end" font-size="8.5"
+      fill="rgba(45,95,93,.55)" font-family="ui-monospace,monospace">${o.targetLabel||o.target}</text>`;
+  const dots=pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2.6"
+      fill="${c}" fill-opacity=".55"/>`).join("");
+  const last=pts[pts.length-1], lx=X(pts.length-1), ly=Y(last.v);
+  const dp=o.dp!=null?o.dp:1;
+  return `<svg class="spk" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="ga${id}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="${c}" stop-opacity=".45"/>
+        <stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient>
+      <linearGradient id="gs${id}" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="${c2}"/><stop offset="1" stop-color="${c}"/></linearGradient>
+      <filter id="gl${id}" x="-30%" y="-60%" width="160%" height="260%">
+        <feGaussianBlur stdDeviation="3.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    ${grid}
+    <path d="${area}" fill="url(#ga${id})"/>${tgt}
+    <path d="${d}" fill="none" stroke="url(#gs${id})" stroke-width="3" stroke-linejoin="round"
+      stroke-linecap="round" filter="url(#gl${id})"/>
+    ${avg}${dots}
+    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="8" fill="${c}" fill-opacity=".22"/>
+    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4.4" fill="${c}" filter="url(#gl${id})"/>
+    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.8" fill="#fff"/>
+  </svg>`;}
+
+function chartCard(title,sub,pts,o){
+  o=o||{};
+  const total=pts.length;
+  if(pts.length<2) return `<div class="chart"><div class="ch"><b>${title}</b><i>needs at least two entries</i></div></div>`;
+  const first=pts[0].v,last=pts[pts.length-1].v,d=last-first;
+  const dp=o.dp!=null?o.dp:1;
+  if(total>120) sub=sub+" · showing a sample";
+  const good=o.invert? d<0 : d>0;
+  const col=o.color||"#63a882";
+  return `<div class="chart" style="--ac:${col}">
+    <div class="ch"><span class="dotc"></span><b>${title}</b>
+      <span class="delta ${d===0?"":good?"up":"dn"}">${d>0?"▲ +":d<0?"▼ ":"— "}${d===0?"":Math.abs(d).toFixed(dp)}</span></div>
+    <div class="cnow"><span class="cv">${last.toFixed(dp)}</span><span class="cs">${sub}</span></div>
+    ${spark(pts,o)}
+    <div class="cx"><span>${pts[0].l}</span><span>${pts[pts.length-1].l}</span></div></div>`;}
+
+/* ---------- IMPORT ---------- */
+function impPanel(kind){
+  const F={sleep:"date, bedtime, wake, hours, quality",
+           weight:"date, weight_lb, bodyfat_pct",
+           strength:"date, day, exercise, set, weight, reps, rir",
+           food:"date, food, qty, unit, kcal, protein, carbs, fat, sugar"}[kind];
+  return `<div class="imp" id="imp">
+    <div class="ih" id="imph"><b>Import past data</b><span>›</span></div>
+    <div class="ib">
+      <textarea id="impt" placeholder="Paste a CSV, or paste text copied from a screenshot"></textarea>
+      <div class="btns">
+        <button class="fbtn" id="impcsv">Choose CSV file</button>
+        <button class="fbtn" id="impimg">Choose screenshot</button>
+      </div>
+      <input type="file" id="impf" accept=".csv,text/csv,text/plain" style="display:none">
+      <input type="file" id="impi" accept="image/*" style="display:none">
+      <button class="run" id="imprun">Read and preview</button>
+      <div class="stat" id="impstat"></div>
+      <div class="fmt">CSV columns: <code>${F}</code> — a header row is optional. The app's own
+      export re-imports cleanly. <b>Screenshots:</b> your phone can already copy text out of an image
+      (long-press the image → Google Lens → Select all → Copy), which is far more accurate than
+      in-app OCR. Paste it above.</div>
+    </div></div>`;}
+
+function wireImp(kind){
+  const box=document.getElementById("imp"); if(!box) return;
+  document.getElementById("imph").onclick=()=>box.classList.toggle("open");
+  const ta=document.getElementById("impt"), stat=document.getElementById("impstat");
+  document.getElementById("impcsv").onclick=()=>document.getElementById("impf").click();
+  document.getElementById("impimg").onclick=()=>document.getElementById("impi").click();
+  document.getElementById("impf").onchange=e=>{const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader(); r.onload=()=>{ta.value=r.result;stat.style.color="var(--dim)";
+      stat.textContent=f.name+" loaded — tap Read and preview.";}; r.readAsText(f);};
+  document.getElementById("impi").onchange=e=>{const f=e.target.files[0]; if(!f)return;
+    stat.style.color="var(--brass)";
+    stat.innerHTML="In-app OCR is not built in — it is large, slow on a phone, and less accurate than what your phone already does.<br><br><b>Do this instead:</b> open the screenshot in Google Photos, tap Lens, tap Select all, Copy, then paste into the box above.";};
+  document.getElementById("imprun").onclick=()=>runImport(kind,ta.value,stat);
+}
+
+function splitRows(txt){
+  return txt.trim().split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length);
+}
+function runImport(kind,txt,stat){
+  if(!txt||!txt.trim()){stat.style.color="var(--hot)";stat.textContent="Nothing to read.";return;}
+  const lines=splitRows(txt.replace(/^\uFEFF/,""));
+  const DELIM = /\t/.test(txt) ? "\t" : (/;/.test(txt)&&!/,/.test(txt) ? ";" : ",");
+  const isCSV = lines.filter(l=>l.includes(DELIM)).length >= Math.max(1,lines.length*0.6);
+  const today = dkey();
+  const normDate = s => {
+    s=(s||"").trim();
+    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[0];
+    m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if(m){ const a=+m[1],bb=+m[2];
+      const mo = a>12 ? bb : a, dd = a>12 ? a : bb;   // ambiguous: assume M/D/Y
+      return m[3]+"-"+String(mo).padStart(2,"0")+"-"+String(dd).padStart(2,"0"); }
+    return null;};
+  let added=0, skipped=0, out=[];
+  const push=(rec)=>{out.push(rec);};
+
+  lines.forEach(line=>{
+    if(/^\uFEFF?(date|day)\b/i.test(line)) return;
+    if(isCSV && line.includes(DELIM)){
+      const c=line.split(DELIM).map(x=>x.trim().replace(/^"|"$/g,""));
+      const d=normDate(c[0]);
+      if(d && d>today){ skipped++; return; }
+      if(kind==="sleep"&&d&&c[1]&&c[2]){ const hh=+c[3]||hrs(c[1],c[2]);
+        if(hh>0&&hh<=16) push({date:d,bed:c[1],wake:c[2],hrs:hh,q:c[4]?+c[4]:null}); else skipped++; return; }
+      if(kind==="weight"&&d&&c[1]){ const lb=+c[1]; if(lb>=80&&lb<=400) push({date:d,lb:lb,bf:c[2]?+c[2]:null}); else skipped++; return; }
+      if(kind==="strength"&&d&&c[2]){ const W=+c[4],R=+c[5];
+        if(W>0&&W<=2000&&R>0&&R<=100) push({date:d,day:c[1]||"D1",n:c[2],set:+c[3]||1,w:W,r:R,rir:c[6]===""?null:+c[6]});
+        else skipped++; return; }
+      if(kind==="food"&&d&&c[1]){ push({date:d,n:c[1],q:+c[2]||1,unit:c[3]||"serving",
+        kcal:+c[4]||0,p:+c[5]||0,c:+c[6]||0,f:+c[7]||0,s:+c[8]||0}); return; }
+      skipped++; return;
+    }
+    // free text, one entry per line
+    if(kind==="sleep"){ const r=parseSleep(line);
+      if(r.bed&&r.wake){push({date:dkey(),bed:r.bed,wake:r.wake,hrs:hrs(r.bed,r.wake),q:r.q}); return;} skipped++; return; }
+    if(kind==="weight"){ const r=parseWeight(line);
+      if(r){push({date:dkey(),lb:r.lb,bf:r.bf}); return;} skipped++; return; }
+    if(kind==="strength"){ const r=parseStrength(line,DB.plan);
+      if(r&&r.sets.length){ r.sets.forEach((s,i)=>push({date:dkey(),day:r.day,n:r.n,set:i+1,w:s.w,r:s.r,rir:s.rir??null})); return; }
+      skipped++; return; }
+    if(kind==="food"){ parseFood(line,(DB.customFoods||[]).concat(FOODDB)).forEach(x=>{
+        if(!x.food){skipped++;return;} const g=x.food.sg*x.qty;
+        push({date:dkey(),n:x.food.n,q:x.qty,unit:x.food.sl,kcal:x.food.kcal*g/100,p:x.food.p*g/100,
+              c:x.food.c*g/100,f:x.food.f*g/100,s:x.food.s*g/100});}); return; }
+    skipped++;
+  });
+
+  if(!out.length){stat.style.color="var(--hot)";
+    stat.textContent="Nothing recognised. Check the column order, or paste one entry per line.";return;}
+  stat.style.color="var(--go)";
+  stat.innerHTML=`Found <b>${out.length}</b> entr${out.length>1?"ies":"y"}${skipped?` · ${skipped} line${skipped>1?"s":""} skipped`:""}.
+    <button class="run" id="impgo" style="margin-top:9px">Add ${out.length} to history</button>`;
+  document.getElementById("impgo").onclick=()=>{
+    if(kind==="sleep"){DB.sleep=DB.sleep||[];
+      out.forEach(r=>{const i=DB.sleep.findIndex(x=>x.date===r.date); if(i>=0)DB.sleep[i]=r;else DB.sleep.push(r);});
+      DB.sleep.sort((a,b)=>a.date<b.date?-1:1);}
+    if(kind==="weight"){DB.weight=DB.weight||[];
+      out.forEach(r=>{const i=DB.weight.findIndex(x=>x.date===r.date); if(i>=0)DB.weight[i]=r;else DB.weight.push(r);});
+      DB.weight.sort((a,b)=>a.date<b.date?-1:1);}
+    if(kind==="food"){DB.food=(DB.food||[]).concat(out);}
+    if(kind==="strength"){DB.sessions=DB.sessions||[];
+      const byDate={}; out.forEach(r=>{const k=r.date+"|"+r.day; (byDate[k]=byDate[k]||[]).push(r);});
+      Object.entries(byDate).forEach(([k,rows])=>{const [d,day]=k.split("|");
+        DB.sessions.push({date:new Date(d+"T12:00").toISOString(),day:day,
+          sets:rows.map(x=>({n:x.n,set:x.set,w:x.w,r:x.r,rir:x.rir}))});});
+      DB.sessions.sort((a,b)=>a.date<b.date?-1:1);}
+    save(); render(); toast(out.length+" imported");};
+}
+
+function foodTotals(d){const r=(DB.food||[]).filter(x=>x.date===(d||dkey()));
+  return {kcal:r.reduce((a,b)=>a+b.kcal,0),p:r.reduce((a,b)=>a+b.p,0),
+          c:r.reduce((a,b)=>a+b.c,0),f:r.reduce((a,b)=>a+b.f,0),s:r.reduce((a,b)=>a+b.s,0),rows:r};}
+function foodV(){
+  const T=foodTotals(), pc=(v,t)=>Math.min(100,Math.round(v/t*100));
+  const rows=T.rows.slice().reverse().map((x,i)=>`<div class="fr">
+     <span class="fn"><b>${esc(x.n)}</b><i>${x.q} × ${x.unit.replace(/^1\s+/,"")} · ${Math.round(x.p)}p ${Math.round(x.c)}c ${Math.round(x.f)}f · ${Math.round(x.s)}g sugar</i></span>
+     <span class="fk">${Math.round(x.kcal)}</span>
+     <button class="add" data-del="${T.rows.length-1-i}" style="border-color:var(--hot);color:var(--hot)">×</button></div>`).join("")
+   ||`<div class="empty">Nothing logged today.<br>Search below to add.</div>`;
+  return `<div class="wrap">
+   <div class="mac">
+     <div class="mc"><div class="v">${Math.round(T.kcal)}</div><div class="k">kcal</div><div class="t">${TGT.kcal?"of "+TGT.kcal:"today"}</div>
+       ${TGT.kcal?`<div class="pbar"><i style="width:${pc(T.kcal,TGT.kcal)}%"></i></div>`:""}</div>
+     <div class="mc"><div class="v">${Math.round(T.p)}</div><div class="k">protein</div><div class="t">${TGT.p?"of "+TGT.p+"g":"today"}</div>
+       ${TGT.p?`<div class="pbar p"><i style="width:${pc(T.p,TGT.p)}%"></i></div>`:""}</div>
+     <div class="mc"><div class="v">${Math.round(T.c)}</div><div class="k">carbs</div><div class="t">${TGT.c?"of "+TGT.c+"g":"today"}</div>
+       ${TGT.c?`<div class="pbar c"><i style="width:${pc(T.c,TGT.c)}%"></i></div>`:""}</div>
+     <div class="mc"><div class="v">${Math.round(T.f)}</div><div class="k">fat</div><div class="t">${TGT.f?"of "+TGT.f+"g":"today"}</div>
+       ${TGT.f?`<div class="pbar f"><i style="width:${pc(T.f,TGT.f)}%"></i></div>`:""}</div>
+   </div>
+   <div class="dl" style="border-bottom:0;padding:2px 4px 12px"><span class="a">Sugar today</span>
+     <span class="b">${Math.round(T.s)} g</span></div>
+   ${(()=>{const by={};(DB.food||[]).forEach(f=>{by[f.date]=by[f.date]||{k:0,p:0};by[f.date].k+=f.kcal;by[f.date].p+=f.p;});
+      const ds=Object.keys(by).sort(); if(ds.length<2) return "";
+      const lab=d=>new Date(d+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"});
+      return chartCard("Calories per day",ds.length+" days"+(TGT.kcal?" · dotted line is "+TGT.kcal:""),
+        ds.map(d=>({v:Math.round(by[d].k),l:lab(d)})),{color:"#4A9C86",color2:"#A9D2CA",target:TGT.kcal||null,targetLabel:"target",id:4,dp:0})
+       + chartCard("Protein per day",TGT.p?"dotted line is "+TGT.p+"g":"per day",
+        ds.map(d=>({v:Math.round(by[d].p),l:lab(d)})),{color:"#C9990F",color2:"#E8C05A",target:TGT.p||null,targetLabel:"target",id:5,dp:0});})()}
+   <div class="say" id="tgtbox" style="display:${TGT.kcal?"none":"block"}">
+     <div class="hintl" style="margin:0 0 10px">Set daily targets to see progress bars. You can skip this and just log food.</div>
+     <div class="srow" style="border-bottom:0;padding:0">
+       <div class="fg"><span class="fl">Calories</span><input class="n" id="tk" inputmode="numeric" placeholder="2000"></div>
+       <div class="fg"><span class="fl">Protein g</span><input class="n" id="tp" inputmode="numeric" placeholder="120"></div>
+     </div>
+     <div class="srow" style="border-bottom:0;padding-top:6px">
+       <div class="fg"><span class="fl">Carbs g</span><input class="n" id="tc" inputmode="numeric" placeholder="200"></div>
+       <div class="fg"><span class="fl">Fat g</span><input class="n" id="tf" inputmode="numeric" placeholder="65"></div>
+     </div>
+     <div class="row"><button class="go2" id="tgtsave">Save targets</button></div>
+   </div>
+   ${TGT.kcal?`<div style="text-align:right;padding:0 4px 10px"><button class="del" id="tgtedit">Change targets</button></div>`:""}
+   ${impPanel("food")}
+   <div class="say">
+     <textarea id="fsay" placeholder="Say or type what you ate — &quot;2 eggs, bacon and white toast&quot;"></textarea>
+     <div class="hintl">Tap the mic on your phone keyboard to dictate. Nothing saves until you confirm.</div>
+     <div class="row"><button class="clr" id="fsayc">Clear</button><button class="go2" id="fsayg">Read it</button></div>
+     <div id="fconf"></div>
+   </div>
+   <input class="srch" id="fq" placeholder="Or search — chicken, oats, banana…" autocomplete="off">
+   <div id="fres"></div>
+      <h2 class="sec">Today</h2><div id="flist">${rows}</div>
+   <div class="note">${TGT.kcal?`Targets: ${TGT.kcal} kcal · ${TGT.p}g protein · ${TGT.c}g carbs · ${TGT.f}g fat. `:""}Values come from a food database, not from measuring your plate — treat them as directional, roughly ±15%.</div></div>`;}
+
+function wireFood(){
+  const q=document.getElementById("fq"), res=document.getElementById("fres");
+  const custom=DB.customFoods||[];
+  const draw=()=>{
+    const t=q.value.trim().toLowerCase();
+    if(!t){res.innerHTML="";return;}
+    const all=custom.concat(FOODDB);
+    const hits=all.filter(f=>f.n.toLowerCase().includes(t)).slice(0,12);
+    res.innerHTML = hits.map((f,i)=>`<div class="fr" data-i="${i}">
+        <span class="fn"><b>${esc(f.n)}</b><i>${esc(f.sl)} · ${Math.round(f.kcal*f.sg/100)} kcal · ${Math.round(f.p*f.sg/100)}g protein</i></span>
+        <button class="add" data-pick="${i}">+</button></div>`).join("")
+      || `<div class="fr"><span class="fn"><b>No match</b><i>Add "${esc(q.value.trim())}" with your own numbers</i></span>
+           <button class="add" data-new="1">+</button></div>`;
+    res.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>pick(hits[+b.dataset.pick]));
+    const nb=res.querySelector("[data-new]"); if(nb) nb.onclick=()=>addCustom(q.value.trim());
+  };
+  q.oninput=draw;
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const T=foodTotals(); const row=T.rows[+b.dataset.del];
+    if(row) tomb(row._id);
+    DB.food=DB.food.filter(x=>x!==row); save(); render(); toast("Removed");});
+}
+function wireTargets(){
+  const s=document.getElementById("tgtsave");
+  if(s) s.onclick=()=>{
+    const g=id=>parseFloat((document.getElementById(id)||{}).value)||0;
+    const t={kcal:g("tk"),p:g("tp"),c:g("tc"),f:g("tf")};
+    if(!t.kcal){toast("Enter at least calories");return;}
+    TGT=t; try{localStorage.setItem(TGT_KEY,JSON.stringify(t));}catch(e){}
+    render(); toast("Targets saved");};
+  const e=document.getElementById("tgtedit");
+  if(e) e.onclick=()=>{TGT={kcal:0,p:0,c:0,f:0};
+    try{localStorage.removeItem(TGT_KEY);}catch(x){} render();};
+}
+function wireFoodSay(){
+  const ta=document.getElementById("fsay"), out=document.getElementById("fconf");
+  if(!ta) return;
+  let parsed=[];
+  document.getElementById("fsayc").onclick=()=>{ta.value="";out.innerHTML="";parsed=[];};
+  document.getElementById("fsayg").onclick=()=>{
+    const txt=ta.value.trim(); if(!txt){toast("Nothing to read");return;}
+    parsed=parseFood(txt,(DB.customFoods||[]).concat(FOODDB));
+    const good=parsed.filter(x=>x.food), bad=parsed.filter(x=>!x.food);
+    if(!good.length){ out.innerHTML=`<div class="conf"><h4>Could not match</h4>
+      <div class="miss">Nothing recognised. Try simpler wording, or use the search box below.</div></div>`; return; }
+    out.innerHTML=`<div class="conf"><h4>Check before saving</h4>`+
+      good.map((x,i)=>`<div class="ci" data-i="${i}">
+        <input class="q" inputmode="decimal" value="${x.qty}">
+        <span class="nm">${esc(x.food.n)}<u>${x.food.sl.replace(/^1\s+/,"")} · ${Math.round(x.food.kcal*x.food.sg/100)} kcal each</u></span>
+        <button class="drop" data-drop="${i}">×</button></div>`).join("")+
+      (bad.length?`<div class="miss">Not recognised: ${bad.map(b=>esc(b.raw)).join(", ")}</div>`:"")+
+      `<div class="row"><button class="go2" id="fcommit">Add ${good.length} item${good.length>1?"s":""}</button></div></div>`;
+    const live=good.slice();
+    out.querySelectorAll(".q").forEach((inp,i)=>inp.oninput=()=>{live[i].qty=parseFloat(inp.value)||0;});
+    out.querySelectorAll("[data-drop]").forEach(b=>b.onclick=()=>{live[+b.dataset.drop].qty=0;
+      b.closest(".ci").style.opacity=".35";});
+    document.getElementById("fcommit").onclick=()=>{
+      let n=0; DB.food=DB.food||[];
+      live.forEach(x=>{ if(!x.qty||x.qty<=0) return; const g=x.food.sg*x.qty;
+        DB.food.push({date:dkey(),n:x.food.n,q:x.qty,unit:x.food.sl,
+          kcal:x.food.kcal*g/100,p:x.food.p*g/100,c:x.food.c*g/100,f:x.food.f*g/100,s:x.food.s*g/100}); n++; });
+      if(!n){toast("Nothing selected");return;}
+      save(); render(); toast(n+" item"+(n>1?"s":"")+" logged");};
+  };
+}
+function pick(f){
+  const n=prompt(`How many ${f.sl.replace(/^1\s+/,"")}?  (1 = ${f.sg} g)`,"1");
+  if(n===null) return; const q=parseFloat(n); if(!q||q<=0) return;
+  const g=f.sg*q;
+  DB.food=DB.food||[];
+  DB.food.push({date:dkey(),n:f.n,q:q,unit:f.sl,
+    kcal:f.kcal*g/100,p:f.p*g/100,c:f.c*g/100,f:f.f*g/100,s:f.s*g/100});
+  save(); render(); toast(f.n+" added");
+}
+function addCustom(name){
+  const kcal=parseFloat(prompt("Calories per serving?","")); if(!kcal) return;
+  const p=parseFloat(prompt("Protein grams?","0"))||0;
+  const c=parseFloat(prompt("Carb grams?","0"))||0;
+  const f=parseFloat(prompt("Fat grams?","0"))||0;
+  const s=parseFloat(prompt("Sugar grams?","0"))||0;
+  const rec={n:name,kcal:kcal,p:p,c:c,f:f,s:s,sg:100,sl:"1 serving"};
+  DB.customFoods=DB.customFoods||[]; if(!DB.customFoods.some(x=>x.n.toLowerCase()===name.toLowerCase())) DB.customFoods.push(rec);
+  DB.food=DB.food||[];
+  DB.food.push({date:dkey(),n:name,q:1,unit:"serving",kcal:kcal,p:p,c:c,f:f,s:s});
+  save(); render(); toast(name+" saved to your foods");
+}
+
+function sleepV(){const S=DB.sleep,t=dkey(),ex=S.find(x=>x.date===t);
+  const w7=windowAvg(S,7,"hrs"), w14=windowAvg(S,14,"hrs");
+  const a7=w7&&w7.v, a14=w14&&w14.v;
+  let st=0,d=new Date();
+  if(!S.find(x=>x.date===dkey(d))) d.setDate(d.getDate()-1);   // today still open
+  while(S.find(x=>x.date===dkey(d))){st++;d.setDate(d.getDate()-1);}
+  const loggedToday=!!S.find(x=>x.date===dkey());
+  const cards=S.length?`<div class="scards">
+    <div class="sc"><div class="v">${a7?a7.toFixed(1):"—"}<u>h</u></div><div class="k">last 7 days${w7?` · ${w7.n} logged`:""}</div></div>
+    <div class="sc"><div class="v">${a14?a14.toFixed(1):"—"}<u>h</u></div><div class="k">last 14 days${w14?` · ${w14.n} logged`:""}</div></div>
+    <div class="sc"><div class="v">${st}</div><div class="k">night streak${st&&!loggedToday?" · to yesterday":""}</div></div></div>`:"";
+  const list=S.slice(-14).reverse().map(x=>`<div class="dl"><span class="a">${new Date(x.date+"T12:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})}<u>${x.bed} – ${x.wake}</u></span>
+    <span class="b ${x.hrs<6.5?'bad':x.hrs>=7.5?'ok':''}">${x.hrs.toFixed(1)}h${x.q?`<u>quality ${x.q}/5</u>`:""}</span></div>`).join("")
+    ||`<div class="empty">No nights logged yet.<br>Two numbers a night is all this takes.</div>`;
+  return `<div class="wrap">${cards}
+   ${S.length>1?chartCard("Sleep trend",S.length+" nights · dotted line is 7 hours",S.map(x=>({v:x.hrs,l:new Date(x.date+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})})),{color:"#2D5F5D",color2:"#7FB8AE",avg:true,target:7,targetLabel:"7h",id:3}):""}
+   ${impPanel("sleep")}
+   <div class="say">
+     <textarea id="ssay" placeholder="Say or type — &quot;slept 6.5 hours, quite well&quot; or &quot;bed 11:30, woke 6:15, rough&quot;"></textarea>
+     <div class="hintl">Tap the mic on your phone keyboard to dictate. Nothing saves until you confirm.</div>
+     <div class="row"><button class="clr" id="ssayc">Clear</button><button class="go2 n" id="ssayg">Read it</button></div>
+     <div id="sconf"></div>
+   </div>
+   <div class="card open"><div class="chead" style="cursor:default"><div class="cn"><b>${ex?"Update last night":"Last night"}</b>
+     <i>${new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</i></div></div>
+     <div class="cbody" style="display:block">
+       <div class="srow" style="border-bottom:0">
+         <div class="fg"><span class="fl">Lights out</span><input class="n" type="time" id="sb" value="${ex?ex.bed:"23:00"}"></div>
+         <div class="fg"><span class="fl">Woke</span><input class="n" type="time" id="sw" value="${ex?ex.wake:"07:00"}"></div></div>
+       <div class="srow" style="border-bottom:0;padding-top:0">
+         <div class="fg"><span class="fl">Quality — optional</span>
+           <div class="pk" id="sq">${[1,2,3,4,5].map(q=>`<button class="pb" data-q="${q}">${q}</button>`).join("")}</div>
+           <span class="gh">1 poor · 5 excellent</span></div></div>
+       <div class="cue" id="sd">—</div></div></div>
+      <h2 class="sec">Last 14 nights</h2>${list}
+   <div class="note">Two numbers a night is all this needs. The rolling averages become meaningful after a week or so of logging.</div></div>`;}
+function wireSleep(){const b=document.getElementById("sb"),w=document.getElementById("sw"),o=document.getElementById("sd");
+  const ex=DB.sleep.find(x=>x.date===dkey());let q=ex?ex.q:null;
+  const up=()=>{const h=hrs(b.value,w.value);o.className="cue"+(h>=7?" go":"");
+    o.textContent=h?`${h.toFixed(1)} hours${h<6.5?" — short. This is the variable most likely holding back the training.":h>=7.5?" — good.":""}`:"Set both times";};
+  b.oninput=up;w.oninput=up;up();
+  document.querySelectorAll("#sq .pb").forEach(btn=>{if(q&&+btn.dataset.q===q)btn.classList.add("on");
+    btn.onclick=()=>{q=+btn.dataset.q;document.querySelectorAll("#sq .pb").forEach(x=>x.classList.remove("on"));btn.classList.add("on");};});
+  document.getElementById("sq").dataset.q=q||"";
+  document.querySelectorAll("#sq .pb").forEach(btn=>{const o=btn.onclick;btn.onclick=()=>{o();document.getElementById("sq").dataset.q=btn.dataset.q;};});}
+function wireSleepSay(){
+  const ta=document.getElementById("ssay"), out=document.getElementById("sconf");
+  if(!ta) return;
+  document.getElementById("ssayc").onclick=()=>{ta.value="";out.innerHTML="";};
+  document.getElementById("ssayg").onclick=()=>{
+    const txt=ta.value.trim(); if(!txt){toast("Nothing to read");return;}
+    const r=parseSleep(txt);
+    let bed=r.bed, wake=r.wake;
+    if(!bed&&!wake&&r.hrs){ wake=document.getElementById("sw").value||"07:00";
+      const [wh,wm]=wake.split(":").map(Number);
+      let m=wh*60+wm-Math.round(r.hrs*60); if(m<0)m+=1440;
+      bed=String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); }
+    if(bed&&!wake&&r.hrs){ const [bh,bm]=bed.split(":").map(Number);
+      let m=(bh*60+bm+Math.round(r.hrs*60))%1440;
+      wake=String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); }
+    if(!bed||!wake){ out.innerHTML=`<div class="conf n"><h4>Could not read that</h4>
+      <div class="miss" style="color:var(--cyan)">Try "slept 6.5 hours" or "bed 11:30, woke 6:15". You can also set the times below by hand.</div></div>`; return; }
+    const hh=hrs(bed,wake);
+    const QW={1:"terrible",2:"poor",3:"ok",4:"good",5:"excellent"};
+    out.innerHTML=`<div class="conf n"><h4>Check before saving</h4>
+      <div class="ci"><span class="nm">Lights out<u>from what you said</u></span><b style="font-family:var(--mono)">${bed}</b></div>
+      <div class="ci"><span class="nm">Woke<u>${r.hrs&&!r.bed?"back-calculated from hours":"from what you said"}</u></span><b style="font-family:var(--mono)">${wake}</b></div>
+      <div class="ci"><span class="nm">Duration</span><b style="font-family:var(--mono);color:${hh<6.5?"var(--hot)":hh>=7.5?"var(--go)":"var(--chalk)"}">${hh.toFixed(1)} h</b></div>
+      ${r.q?`<div class="ci"><span class="nm">Quality</span><b style="font-family:var(--mono)">${r.q}/5 · ${QW[r.q]}</b></div>`:""}
+      <div class="row"><button class="go2 n" id="scommit">Save this night</button></div></div>`;
+    document.getElementById("scommit").onclick=()=>{
+      const t=dkey(), rec={date:t,bed:bed,wake:wake,hrs:hh,q:r.q??null};
+      const i=DB.sleep.findIndex(x=>x.date===t); if(i>=0)DB.sleep[i]=rec; else DB.sleep.push(rec);
+      DB.sleep.sort((a,b2)=>a.date<b2.date?-1:1); save(); render(); toast(hh.toFixed(1)+"h logged");};
+  };
+}
+function saveSleep(){const b=document.getElementById("sb").value,w=document.getElementById("sw").value;
+  if(!b||!w){toast("Set both times");return;}
+  if(hrs(b,w)<=0||hrs(b,w)>16){toast("Check those times");return;}
+  const t=dkey(),rec={date:t,bed:b,wake:w,hrs:hrs(b,w),q:(()=>{const e=document.getElementById("sq");return e&&e.dataset.q?+e.dataset.q:null;})()};
+  const i=DB.sleep.findIndex(x=>x.date===t);if(i>=0)DB.sleep[i]=rec;else DB.sleep.push(rec);
+  DB.sleep.sort((a,b2)=>a.date<b2.date?-1:1);save();render();toast(rec.hrs.toFixed(1)+"h logged");}
+
+function progV(){if(!DB.sessions.length)return `<div class="wrap">${impPanel("strength")}<div class="empty">No sessions logged yet.<br>Log one, or import your history above.</div></div>`;
+  const names=[...new Set(DB.sessions.flatMap(s=>s.sets.map(x=>x.n)))];
+  return `<div class="wrap">${impPanel("strength")}<h2 class="sec">Best estimated 1RM</h2>`+
+   names.map((n,i)=>{
+     const kd=kindOf(n);
+     const val=x=>kd==="w"?e1rm(x.w,x.r):x.r;
+     const pts=DB.sessions.filter(s=>s.sets.some(x=>x.n===n)).map(s=>({
+       v:Math.max(...s.sets.filter(x=>x.n===n).map(val)),
+       l:new Date(s.date).toLocaleDateString(undefined,{day:"numeric",month:"short"})}));
+     const unit=kd==="t"?" min":kd==="b"?" reps":"";
+     const d=pts.length>1?pts[pts.length-1].v-pts[0].v:null;
+     return `<div class="exw"><div class="dl exh" data-ex="${i}" style="cursor:pointer">
+       <span class="a">${esc(n)}<u>${pts.length} session${pts.length>1?"s":""} · tap for trend</u></span>
+       <span class="b"><b>${(kd==="w"?bestFor(n):Math.max(...pts.map(p=>p.v))).toFixed(0)}${unit}</b>${d!==null?`<u style="color:${d>0?"var(--go)":d<0?"var(--hot)":"var(--dimmer)"}">${d>0?"+":""}${d.toFixed(0)}</u>`:""}</span></div>
+       <div class="exc" id="exc${i}" style="display:none">${pts.length>1
+         ? chartCard(esc(n)+(kd==="w"?" — estimated 1RM":kd==="t"?" — minutes":" — reps"),pts.length+" sessions",pts,{color:"#F4714C",color2:"#F9B49C",id:100+i,dp:0})
+         : `<div class="note" style="padding:8px 4px">Log this again and the trend appears here.</div>`}</div></div>`;}).join("")+
+   `<h2 class="sec">Recent sessions</h2>`+DB.sessions.slice(-8).reverse().map(s=>{const by={};
+     s.sets.forEach(x=>{(by[x.n]=by[x.n]||[]).push((x.k&&x.k!=="w")?(x.r+(x.k==="t"?"min":"")):(x.w+"×"+x.r));});
+     const idx=DB.sessions.indexOf(s);
+     return `<div class="dl" style="display:block"><div style="display:flex;align-items:baseline;gap:10px">
+       <span class="a" style="flex:1;color:var(--brass);font-family:var(--mono);font-size:11px">${new Date(s.date).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})} · ${esc(s.day)}</span>
+       <button class="drop" data-sess="${idx}" style="color:var(--hot);background:none;border:0;font-size:16px;padding:2px 6px;cursor:pointer">×</button></div>
+       <div style="font-size:12px;color:var(--dim);margin-top:6px;line-height:1.7">${Object.entries(by).map(([k,v])=>esc(k)+" "+v.join(", ")).join("<br>")}</div></div>`;}).join("")+
+   `<div style="padding:20px 4px"><button class="del" id="wipe">Erase all data</button></div></div>`;}
+
+function csv(){const rows=[["date","day","exercise","set","weight","reps","rir","est1rm"]];
+  DB.sessions.forEach(s=>s.sets.forEach(x=>rows.push([dkey(new Date(s.date)),s.day,x.n,x.set,x.w,x.r,x.rir??"",e1rm(x.w,x.r).toFixed(1)])));
+  let out=rows.map(r=>r.join(",")).join("\n");
+  if(DB.sleep.length)out+="\n\ndate,bedtime,wake,hours,quality\n"+DB.sleep.map(s=>[s.date,s.bed,s.wake,s.hrs.toFixed(2),s.q??""].join(",")).join("\n");
+  if((DB.food||[]).length)out+="\n\ndate,food,qty,unit,kcal,protein,carbs,fat,sugar\n"+DB.food.map(f=>[f.date,'"'+f.n+'"',f.q,f.unit,f.kcal.toFixed(0),f.p.toFixed(1),f.c.toFixed(1),f.f.toFixed(1),f.s.toFixed(1)].join(",")).join("\n");
+  if((DB.weight||[]).length)out+="\n\ndate,weight_lb,bodyfat_pct\n"+DB.weight.map(w=>[w.date,w.lb,w.bf??""].join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/csv"}));
+  a.download="strength_and_sleep_log_"+dkey()+".csv";a.click();toast("Exported");}
+document.addEventListener("click",e=>{if(e.target.id==="wipe"&&confirm("Erase every logged session and night?")){
+  DB={plan:JSON.parse(JSON.stringify(SEED)),sessions:[],sleep:[],food:[],customFoods:[],weight:[],
+      _del:[],_wipe:Date.now()+1};save();tab=day;render();toast("Erased");}});
+document.getElementById("hm").onclick=()=>{tab="home";render();};
+window.addEventListener("storage",e=>{ if(e.key===K){ DB=load(); render(); toast("Updated from another window"); }});
+render();
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(reg=>{
+    reg.addEventListener("updatefound",()=>{
+      const nw=reg.installing; if(!nw) return;
+      nw.addEventListener("statechange",()=>{
+        if(nw.state==="installed"&&navigator.serviceWorker.controller){
+          const bar=document.createElement("div");
+          bar.style.cssText="position:fixed;left:12px;right:12px;bottom:96px;z-index:70;background:var(--fiery);"+
+            "color:#fff;font:700 13.5px var(--sans);padding:14px 16px;border-radius:12px;display:flex;"+
+            "align-items:center;gap:12px;box-shadow:0 8px 24px -8px rgba(0,0,0,.7)";
+          bar.innerHTML='<span style="flex:1">A newer version is ready.</span>'+
+            '<button style="background:#fff;color:#F4714C;border:0;border-radius:8px;font:700 12.5px var(--sans);padding:9px 14px">Update</button>';
+          bar.querySelector("button").onclick=()=>{ nw.postMessage({type:"SKIP_WAITING"}); };
+          document.body.appendChild(bar);
+        }});});
+    setInterval(()=>reg.update().catch(()=>{}), 60*60*1000);
+  }).catch(()=>{});
+  let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(reloaded) return; reloaded=true; location.reload();});
+}
+</script>
+</body>
+</html>
