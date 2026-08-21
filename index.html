@@ -440,6 +440,20 @@ function bestFood(phrase,db){
   });
   return score>=2?{food:best,score:score}:null;
 }
+/* v-fix 2026-08-18: NUMW and numFrom were referenced but never defined in V Log.
+   parseFood threw ReferenceError on every recognised food; sleep parsing threw on
+   word-numbers. Ported verbatim from KM Log, with the percentage guard. */
+const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  half:0.5,"a half":0.5,quarter:0.25,couple:2,"a couple":2,double:2,dozen:12,"a dozen":12};
+function numFrom(t){
+  t=t.replace(/\d+(?:\.\d+)?\s*%/g," ").replace(/\b\d{2}\/\d{2}\b/g," ").replace(/\b\d+-egg\b/g," ");
+  const f=t.match(/(\d+(?:\.\d+)?)\s*(?:and\s*a\s*half)?/);
+  if(/and a half/.test(t)&&f) return parseFloat(f[1])+0.5;
+  if(f) return parseFloat(f[1]);
+  const order=["a dozen","dozen","a couple","couple","half","quarter","double","ten","nine","eight","seven","six","five","four","three","two","one","an","a"];
+  for(const w of order){ if(NUMW[w]!=null && new RegExp("\\b"+w+"\\b").test(t)) return NUMW[w]; }
+  return null;
+}
 function parseFood(raw,db){
   if(/\b(no|nothing|didn'?t|did not|skipped|none)\b/.test(raw.toLowerCase())&&!/\d/.test(raw)) return [];
   const parts=raw.toLowerCase()
@@ -903,8 +917,7 @@ Starbucks Oatmeal, plain|68|2.1|12.0|1.1|0.0|234|1 serving
 Starbucks Protein Box, Eggs and Cheese|187|9.1|15.9|9.9|2.8|252|1 box
 Starbucks Turkey Pesto Panini|224|12.4|23.2|8.7|2.1|241|1 panini
 Starbucks Tomato Mozzarella Panini|199|8.9|22.5|7.9|3.1|191|1 panini
-Starbucks Chicken Caprese Sandwich|212|12.5|21.6|8.2|2.4|255|1 sandwich
-`;
+Starbucks Chicken Caprese Sandwich|212|12.5|21.6|8.2|2.4|255|1 sandwich`;
 
 /* Nutrition targets — set by the user, blank until then */
 let TGT=(()=>{try{const r=localStorage.getItem("vTargets_v1"); if(r) return JSON.parse(r);}catch(e){}
@@ -918,7 +931,7 @@ const APP_VER="vlog-2.6";
 const BK="vLog_backups_v1";
 const TGT_KEY="vTargets_v1";
 let DB=load(), day="ALL", tab="home";
-let drafts=(()=>{try{const r=localStorage.getItem("kmDraft_v2");
+let drafts=(()=>{try{const r=localStorage.getItem("vDraft_v1");
   if(r){const o=JSON.parse(r);
     const age = o.ts ? (Date.now()-o.ts) : (o.date===dkeyBoot()?0:Infinity);
     if(age < 10*60*60*1000) return o.d||{};}}catch(e){}
@@ -926,11 +939,11 @@ let drafts=(()=>{try{const r=localStorage.getItem("kmDraft_v2");
 const draftFor=d=>(drafts[d]=drafts[d]||{});
 function dkeyBoot(){const x=new Date();
   return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
-function saveDraft(){try{localStorage.setItem("kmDraft_v2",
+function saveDraft(){try{localStorage.setItem("vDraft_v1",
   JSON.stringify({date:dkeyBoot(),ts:Date.now(),d:drafts}));}catch(e){}}
 function clearDraft(){delete drafts[day];
-  try{Object.keys(drafts).length?localStorage.setItem("kmDraft_v2",JSON.stringify({date:dkeyBoot(),ts:Date.now(),d:drafts}))
-    :localStorage.removeItem("kmDraft_v2");}catch(e){}}
+  try{Object.keys(drafts).length?localStorage.setItem("vDraft_v1",JSON.stringify({date:dkeyBoot(),ts:Date.now(),d:drafts}))
+    :localStorage.removeItem("vDraft_v1");}catch(e){}}
 function load(){
   let o=null;
   try{const r=localStorage.getItem(K); if(r) o=JSON.parse(r);}catch(e){o=null;}
