@@ -349,6 +349,12 @@ input.n[type=time]{font-size:18px}
 .toast.on{opacity:1}
 .note{font-size:10.5px;color:#9A8E96;line-height:1.65;padding:10px 4px 0}
 .del{background:none;border:0;color:var(--dimmer);font-size:11px;padding:8px;cursor:pointer}
+
+/* Biggest-gains expandable charts */
+.movw{border-bottom:1px solid var(--line)}
+.movw:last-of-type{border-bottom:0}
+.movw .dl{border-bottom:0}
+.movc{padding:0 2px 10px}
 </style>
 </head>
 <body>
@@ -420,7 +426,9 @@ function parseSleep(raw){
   return {bed,wake,hrs,q};
 }
 function bestFood(phrase,db){
-  phrase=phrase.replace(/\btoast\b/gi,"bread").replace(/\bchicken breasts?\b/gi,"chicken breast");
+  phrase=phrase.replace(/\bdouble\s+doubles?\b/gi,"coffee double double")
+    .replace(/\b0\s*%/g," nonfat ")
+    .replace(/\btoast\b/gi,"bread").replace(/\bchicken breasts?\b/gi,"chicken breast");
   const words=phrase.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/)
     .filter(w=>w.length>2 && !["the","and","some","with","was","had","ate","eat","for","cup","cups","bowl","plate","serving","servings","of","food","meal","today","lunch","dinner","breakfast","snack"].includes(w));
   if(!words.length) return null;
@@ -446,6 +454,8 @@ function bestFood(phrase,db){
 const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
   half:0.5,"a half":0.5,quarter:0.25,couple:2,"a couple":2,double:2,dozen:12,"a dozen":12};
 function numFrom(t){
+  t=t.replace(/\bdouble\s+doubles?\b/g," ")      /* the coffee, not the multiplier */
+    .replace(/\bquarter\s+pounder\b/g," ");   /* the burger, not a quarter */
   t=t.replace(/\d+(?:\.\d+)?\s*%/g," ").replace(/\b\d{2}\/\d{2}\b/g," ").replace(/\b\d+-egg\b/g," ");
   const f=t.match(/(\d+(?:\.\d+)?)\s*(?:and\s*a\s*half)?/);
   if(/and a half/.test(t)&&f) return parseFloat(f[1])+0.5;
@@ -464,6 +474,15 @@ function parseFood(raw,db){
   parts.forEach(p=>{
     const m=bestFood(p,db); if(!m) { out.push({raw:p,food:null,qty:1}); return; }
     let q=numFrom(p); if(q==null) q=1;
+    /* A word-number that is part of the food's own name is a name, not a count:
+       "double quarter pounder" is one burger, not two, and not a quarter. Only
+       applies when no digit was typed — "2 double cheeseburgers" still means 2. */
+    if(!/\d/.test(p)){
+      const nm=m.food.n.toLowerCase(), lp=p.toLowerCase();
+      for(const w of ["double","triple","quarter","half","dozen","couple"]){
+        if(nm.includes(w) && new RegExp("\\b"+w+"\\b").test(lp)){ q=1; break; }
+      }
+    }
     out.push({raw:p,food:m.food,qty:q});
   });
   return out;
@@ -917,7 +936,376 @@ Starbucks Oatmeal, plain|68|2.1|12.0|1.1|0.0|234|1 serving
 Starbucks Protein Box, Eggs and Cheese|187|9.1|15.9|9.9|2.8|252|1 box
 Starbucks Turkey Pesto Panini|224|12.4|23.2|8.7|2.1|241|1 panini
 Starbucks Tomato Mozzarella Panini|199|8.9|22.5|7.9|3.1|191|1 panini
-Starbucks Chicken Caprese Sandwich|212|12.5|21.6|8.2|2.4|255|1 sandwich`;
+Starbucks Chicken Caprese Sandwich|212|12.5|21.6|8.2|2.4|255|1 sandwich
+Big Mac, McDonalds|563|26|45|33|9|219|1 burger
+Quarter Pounder with Cheese, McDonalds|520|30|42|26|10|202|1 burger
+Double Quarter Pounder with Cheese, McDonalds|750|48|43|43|10|280|1 burger
+Cheeseburger, McDonalds|301|15|32|13|7|119|1 burger
+Double Cheeseburger, McDonalds|445|25|34|23|7|173|1 burger
+Hamburger, McDonalds|250|12|31|9|6|105|1 burger
+McChicken, McDonalds|400|14|39|21|5|143|1 sandwich
+Junior Chicken, McDonalds|370|14|33|20|5|136|1 sandwich
+McCrispy Chicken Sandwich, McDonalds|470|26|46|20|9|219|1 sandwich
+Spicy McCrispy, McDonalds|530|26|48|26|9|226|1 sandwich
+Filet-O-Fish, McDonalds|390|15|39|19|5|142|1 sandwich
+Chicken McNuggets 6 piece, McDonalds|250|15|15|15|0|103|6 pieces
+Chicken McNuggets 10 piece, McDonalds|420|25|25|25|0|172|10 pieces
+Chicken McNuggets 20 piece, McDonalds|830|49|50|50|1|344|20 pieces
+French fries small, McDonalds|230|3|30|11|0|71|small
+French fries medium, McDonalds|330|4|43|16|0|102|medium
+French fries large, McDonalds|490|6|64|23|0|154|large
+Poutine, McDonalds|740|20|69|43|3|340|1 order
+Apple slices, McDonalds|15|0|4|0|3|34|1 pack
+Side salad, McDonalds|15|1|3|0|2|68|1 salad
+Egg McMuffin, McDonalds|300|17|30|12|3|139|1 muffin
+Sausage McMuffin, McDonalds|400|14|29|25|2|113|1 muffin
+Sausage McMuffin with Egg, McDonalds|480|21|30|31|2|163|1 muffin
+Bacon and Egg McMuffin, McDonalds|310|18|30|13|3|142|1 muffin
+Sausage Breakfast Burrito, McDonalds|310|13|26|17|2|116|1 burrito
+Hotcakes, McDonalds|580|9|101|15|45|221|3 hotcakes
+Big Breakfast, McDonalds|780|29|54|48|3|262|1 platter
+Hash brown, McDonalds|150|1|17|9|0|53|1 piece
+Bacon McDouble, McDonalds|480|29|33|25|7|186|1 burger
+McMuffin sandwich sausage double, McDonalds|560|24|30|38|2|183|1 muffin
+Chicken McWrap grilled, McDonalds|350|30|33|10|3|228|1 wrap
+Vanilla cone, McDonalds|200|5|31|6|24|111|1 cone
+McFlurry Oreo, McDonalds|510|12|80|16|60|285|regular
+McFlurry Smarties, McDonalds|540|12|85|17|65|285|regular
+Sundae hot fudge, McDonalds|330|8|53|10|44|179|1 sundae
+Apple pie baked, McDonalds|250|2|32|13|13|77|1 pie
+Chocolate chip cookie, McDonalds|170|2|22|8|14|33|1 cookie
+Milkshake chocolate medium, McDonalds|620|13|100|18|85|420|medium
+Milkshake vanilla medium, McDonalds|590|13|94|18|80|420|medium
+Iced coffee medium, McDonalds|180|2|32|5|30|475|medium
+Coffee black, McDonalds|0|0|0|0|0|355|medium
+Latte medium, McDonalds|190|10|18|9|17|475|medium
+Cappuccino medium, McDonalds|140|8|13|7|12|400|medium
+Mocha medium, McDonalds|330|11|48|11|43|475|medium
+Orange juice medium, McDonalds|190|2|44|0|40|400|medium
+Coca-Cola medium, McDonalds|210|0|58|0|58|500|medium
+Diet Coke medium, McDonalds|0|0|0|0|0|500|medium
+Sprite medium, McDonalds|200|0|54|0|54|500|medium
+Timbit, Tim Hortons|70|1|9|3|4|18|1 timbit
+Boston cream donut, Tim Hortons|250|4|33|11|17|76|1 donut
+Honey dip donut, Tim Hortons|210|4|32|8|13|65|1 donut
+Chocolate dip donut, Tim Hortons|230|4|33|10|15|70|1 donut
+Apple fritter, Tim Hortons|300|5|48|11|24|100|1 fritter
+Maple dip donut, Tim Hortons|220|4|33|9|14|68|1 donut
+Sour cream glazed donut, Tim Hortons|300|3|39|15|22|80|1 donut
+Walnut crunch donut, Tim Hortons|360|6|35|22|17|92|1 donut
+Dutchie donut, Tim Hortons|250|4|35|11|17|75|1 donut
+Old fashioned plain donut, Tim Hortons|260|4|28|15|10|70|1 donut
+Chocolate chip muffin, Tim Hortons|430|6|60|19|32|120|1 muffin
+Fruit explosion muffin, Tim Hortons|400|5|61|15|31|122|1 muffin
+Blueberry muffin, Tim Hortons|350|5|55|13|28|113|1 muffin
+Carrot walnut muffin, Tim Hortons|430|6|56|21|33|122|1 muffin
+Bran muffin, Tim Hortons|330|6|56|10|30|122|1 muffin
+Plain bagel, Tim Hortons|300|11|58|2|5|105|1 bagel
+Everything bagel, Tim Hortons|310|12|58|4|5|108|1 bagel
+Cinnamon raisin bagel, Tim Hortons|300|10|61|2|11|105|1 bagel
+Bagel with cream cheese, Tim Hortons|420|14|60|14|8|140|1 bagel
+Croissant plain, Tim Hortons|340|6|35|19|6|85|1 croissant
+Chocolate croissant, Tim Hortons|420|7|46|24|17|100|1 croissant
+Tea biscuit plain, Tim Hortons|260|5|38|10|4|82|1 biscuit
+Farmers Wrap sausage, Tim Hortons|500|20|42|28|4|190|1 wrap
+Breakfast sandwich bacon on biscuit, Tim Hortons|420|17|36|23|3|150|1 sandwich
+Breakfast sandwich sausage on English muffin, Tim Hortons|480|20|32|30|3|172|1 sandwich
+Breakfast sandwich egg and cheese, Tim Hortons|300|14|31|13|3|130|1 sandwich
+Sausage breakfast wrap, Tim Hortons|380|15|33|21|3|145|1 wrap
+Hash brown, Tim Hortons|120|1|14|7|0|45|1 piece
+Turkey bacon club sandwich, Tim Hortons|470|30|52|15|6|248|1 sandwich
+Chicken salad sandwich, Tim Hortons|380|22|50|10|6|235|1 sandwich
+Grilled cheese, Tim Hortons|340|13|36|16|4|130|1 sandwich
+Chili small, Tim Hortons|240|17|22|9|5|283|small
+Chicken noodle soup, Tim Hortons|110|6|17|2|2|283|small
+Cream of broccoli soup, Tim Hortons|180|5|21|8|4|283|small
+Coffee small, Tim Hortons|0|0|0|0|0|300|small
+Coffee double double medium, Tim Hortons|230|3|26|13|24|414|medium
+Coffee with milk medium, Tim Hortons|45|2|5|2|4|414|medium
+French vanilla medium, Tim Hortons|320|3|53|11|45|414|medium
+Iced capp medium, Tim Hortons|400|5|60|16|54|475|medium
+Iced capp with milk medium, Tim Hortons|310|6|56|8|52|475|medium
+Latte medium, Tim Hortons|180|10|17|8|16|414|medium
+Steeped tea medium, Tim Hortons|0|0|0|0|0|414|medium
+Hot chocolate medium, Tim Hortons|320|4|58|9|48|414|medium
+Espresso, Tim Hortons|5|0|1|0|0|30|1 shot
+Chocolate chip cookie, Tim Hortons|230|3|33|10|20|60|1 cookie
+Oatmeal raisin cookie, Tim Hortons|220|3|34|9|19|60|1 cookie
+Lemon loaf slice, Tim Hortons|340|4|48|15|30|95|1 slice
+Banana bread slice, Tim Hortons|340|5|52|13|30|100|1 slice
+Whopper, Burger King|670|28|49|40|11|270|1 burger
+Whopper with cheese, Burger King|760|33|50|47|12|298|1 burger
+Bacon King, Burger King|1150|61|49|79|11|376|1 burger
+Cheeseburger, Burger King|300|15|27|14|7|133|1 burger
+Chicken Royale, Burger King|580|24|53|30|8|213|1 sandwich
+Original Chicken Sandwich, Burger King|660|28|48|40|5|219|1 sandwich
+Chicken nuggets 8 piece, Burger King|350|17|18|23|0|123|8 pieces
+French fries medium, Burger King|380|4|53|17|0|116|medium
+Onion rings medium, Burger King|410|5|53|20|5|113|medium
+Croissanwich sausage egg cheese, Burger King|500|18|28|34|4|161|1 sandwich
+Dave's Single, Wendys|590|29|39|34|9|218|1 burger
+Dave's Double, Wendys|840|48|40|55|9|300|1 burger
+Baconator, Wendys|960|59|38|62|8|300|1 burger
+Jr Bacon Cheeseburger, Wendys|380|20|25|22|5|136|1 burger
+Spicy Chicken Sandwich, Wendys|500|29|49|20|7|225|1 sandwich
+Homestyle Chicken Sandwich, Wendys|500|29|48|20|8|225|1 sandwich
+Grilled Chicken Sandwich, Wendys|370|34|38|10|9|218|1 sandwich
+Chicken nuggets 10 piece, Wendys|450|22|25|29|0|150|10 pieces
+French fries medium, Wendys|350|5|48|16|0|127|medium
+Chili small, Wendys|240|18|23|10|6|227|small
+Baked potato plain, Wendys|270|7|61|0|3|298|1 potato
+Baked potato sour cream and chives, Wendys|320|8|63|4|3|314|1 potato
+Frosty chocolate small, Wendys|340|9|56|9|46|227|small
+Apple pecan salad half, Wendys|340|17|24|20|17|219|half
+Teen Burger, A and W|670|30|41|43|8|265|1 burger
+Mama Burger, A and W|470|22|38|26|7|196|1 burger
+Papa Burger, A and W|760|41|41|48|8|306|1 burger
+Buddy Burger, A and W|350|16|33|18|6|145|1 burger
+Chubby Chicken Burger, A and W|530|23|48|28|6|203|1 burger
+Chubby Chicken Strips 4 piece, A and W|420|28|29|21|1|170|4 strips
+Onion rings, A and W|400|5|49|20|4|113|regular
+French fries, A and W|360|4|48|17|0|118|regular
+Bacon and Egger, A and W|420|19|33|23|4|160|1 sandwich
+Root beer medium, A and W|280|0|72|0|72|500|medium
+Original Chicken Sandwich, Chick-fil-A|440|28|41|19|6|183|1 sandwich
+Spicy Chicken Sandwich, Chick-fil-A|450|28|42|19|6|183|1 sandwich
+Grilled Chicken Sandwich, Chick-fil-A|390|28|44|12|10|210|1 sandwich
+Chicken nuggets 8 piece, Chick-fil-A|250|27|11|11|1|113|8 pieces
+Chicken nuggets 12 piece, Chick-fil-A|380|40|16|17|2|170|12 pieces
+Grilled nuggets 8 piece, Chick-fil-A|130|25|1|3|1|113|8 pieces
+Waffle fries medium, Chick-fil-A|420|5|45|24|1|125|medium
+Chicken strips 3 piece, Chick-fil-A|310|29|14|15|1|130|3 strips
+Cobb salad, Chick-fil-A|510|40|27|27|8|338|1 salad
+Original Recipe chicken breast, KFC|390|39|11|21|0|161|1 piece
+Original Recipe drumstick, KFC|130|12|4|8|0|59|1 piece
+Original Recipe thigh, KFC|280|19|8|19|0|126|1 piece
+Original Recipe wing, KFC|130|10|4|8|0|47|1 piece
+Extra Crispy chicken breast, KFC|530|35|22|35|0|168|1 piece
+Popcorn chicken individual, KFC|400|21|27|22|0|113|individual
+Chicken Sandwich, KFC|650|33|52|35|8|213|1 sandwich
+Famous Bowl, KFC|720|26|80|33|3|496|1 bowl
+Coleslaw individual, KFC|170|1|22|9|16|130|individual
+Mashed potatoes with gravy, KFC|130|2|20|4|1|150|individual
+Biscuit, KFC|180|4|22|9|2|57|1 biscuit
+Chicken sandwich classic, Popeyes|700|28|50|42|8|219|1 sandwich
+Chicken sandwich spicy, Popeyes|700|28|50|42|8|219|1 sandwich
+Chicken tenders 3 piece, Popeyes|340|24|18|20|0|127|3 tenders
+Bonafide chicken breast, Popeyes|390|35|14|22|0|170|1 piece
+Cajun fries regular, Popeyes|340|5|43|17|0|113|regular
+Red beans and rice regular, Popeyes|230|5|29|10|1|136|regular
+Crunchy taco, Taco Bell|170|8|13|10|1|78|1 taco
+Soft taco beef, Taco Bell|180|9|18|9|1|99|1 taco
+Doritos Locos Taco, Taco Bell|170|8|13|10|1|78|1 taco
+Bean burrito, Taco Bell|350|13|54|9|3|198|1 burrito
+Burrito Supreme beef, Taco Bell|390|16|51|14|4|248|1 burrito
+Chicken quesadilla, Taco Bell|510|26|38|28|3|181|1 quesadilla
+Crunchwrap Supreme, Taco Bell|530|16|71|21|6|254|1 crunchwrap
+Nachos BellGrande, Taco Bell|740|16|82|38|5|312|1 order
+Cheesy Gordita Crunch, Taco Bell|500|20|41|28|5|179|1 item
+Cinnamon twists, Taco Bell|170|1|27|6|10|35|1 order
+6 inch turkey breast sub, Subway|280|18|46|4|8|219|6 inch
+6 inch chicken teriyaki sub, Subway|350|26|54|4|17|258|6 inch
+6 inch Italian BMT sub, Subway|390|19|45|16|8|233|6 inch
+6 inch tuna sub, Subway|470|20|45|24|7|246|6 inch
+6 inch meatball marinara sub, Subway|480|21|61|17|11|298|6 inch
+6 inch steak and cheese sub, Subway|380|25|46|11|9|261|6 inch
+6 inch veggie delite sub, Subway|200|8|41|2|6|166|6 inch
+6 inch rotisserie chicken sub, Subway|300|27|45|5|8|246|6 inch
+Footlong turkey breast sub, Subway|560|36|92|8|16|438|footlong
+Cookie chocolate chip, Subway|220|2|30|10|18|45|1 cookie
+Chicken burrito bowl, Chipotle|625|45|60|21|4|500|1 bowl
+Steak burrito bowl, Chipotle|620|38|60|24|4|500|1 bowl
+Carnitas burrito bowl, Chipotle|670|38|60|30|4|500|1 bowl
+Sofritas burrito bowl, Chipotle|565|22|68|22|6|500|1 bowl
+Chicken burrito, Chipotle|975|55|121|33|8|640|1 burrito
+Chips and guacamole, Chipotle|770|9|73|49|3|200|1 order
+Guacamole side, Chipotle|230|2|8|22|1|113|1 side
+Chicken quesadilla, Chipotle|1000|54|65|54|4|350|1 quesadilla
+Pepperoni pizza slice, Pizza Hut|300|13|32|13|3|108|1 slice
+Cheese pizza slice, Pizza Hut|270|12|32|10|3|103|1 slice
+Meat Lovers pizza slice, Pizza Hut|380|17|32|20|3|127|1 slice
+Pepperoni pizza slice, Dominos|210|9|25|9|2|80|1 slice
+Cheese pizza slice, Dominos|200|8|25|8|2|79|1 slice
+Chicken wings 4 piece, Dominos|220|24|2|13|0|118|4 wings
+Garlic bread twists 2, Dominos|280|6|34|13|2|85|2 twists
+Blizzard Oreo small, Dairy Queen|560|11|82|21|60|340|small
+Blizzard Reeses small, Dairy Queen|590|13|76|27|61|340|small
+Vanilla cone medium, Dairy Queen|340|8|53|11|39|198|medium
+Dilly Bar chocolate, Dairy Queen|220|3|24|13|17|85|1 bar
+Chicken strip basket 4 piece, Dairy Queen|1000|38|102|50|4|425|1 basket
+Quarter chicken dinner white, Swiss Chalet|590|48|48|22|6|400|1 dinner
+Quarter chicken dinner dark, Swiss Chalet|660|44|48|32|6|400|1 dinner
+Chalet dipping sauce, Swiss Chalet|45|1|9|1|4|85|1 sauce
+Original burger, Harveys|420|22|36|20|7|180|1 burger
+Angus burger, Harveys|600|33|38|34|8|240|1 burger
+Poutine, Harveys|780|22|72|46|4|350|1 order
+Chicken shawarma plate, generic|650|45|55|26|6|450|1 plate
+Butter chicken with rice, restaurant|780|38|72|38|10|500|1 order
+Pad thai chicken, restaurant|900|38|110|34|30|500|1 order
+California roll, sushi|255|9|38|7|6|170|6 pieces
+Salmon sashimi, sushi|120|20|0|4|0|85|6 pieces
+Spicy tuna roll, sushi|290|13|38|9|5|170|6 pieces
+Chicken tikka masala with rice, restaurant|850|45|85|35|12|500|1 order
+Beef and broccoli with rice, restaurant|700|38|72|28|12|500|1 order
+General Tso chicken with rice, restaurant|1000|38|120|40|35|500|1 order
+Pho beef large, restaurant|500|32|65|10|6|700|large bowl
+Chicken caesar wrap, cafe|650|32|52|34|4|300|1 wrap
+Greek salad with feta, restaurant|380|12|18|30|10|350|1 salad
+Apple, Granny Smith|80|0|21|0|16|150|1 medium
+Apple, Gala|95|0|25|0|19|182|1 medium
+Orange, navel|75|1|19|0|15|150|1 medium
+Mandarin orange|40|1|10|0|8|75|1 mandarin
+Grapefruit half|50|1|13|0|8|123|half
+Lemon|20|0|6|0|2|60|1 lemon
+Lime|20|0|7|0|1|67|1 lime
+Banana, medium|105|1|27|0|14|118|1 banana
+Banana, large|121|1|31|0|17|136|1 banana
+Cranberries, fresh|46|0|12|0|4|100|1 cup
+Grapes, red|104|1|27|0|23|151|1 cup
+Watermelon, cubed|46|1|12|0|9|152|1 cup
+Cantaloupe, cubed|54|1|13|0|13|160|1 cup
+Honeydew, cubed|61|1|15|0|14|170|1 cup
+Pineapple, chunks|83|1|22|0|16|165|1 cup
+Papaya, cubed|62|1|16|0|11|145|1 cup
+Nectarine|63|2|15|0|11|142|1 nectarine
+Apricot|17|0|4|0|3|35|1 apricot
+Pomegranate seeds|144|3|33|2|24|174|1 cup
+Figs, fresh|37|0|10|0|8|50|1 fig
+Dates, Medjool|66|0|18|0|16|24|1 date
+Dried cranberries|123|0|33|0|29|40|quarter cup
+Broccoli, raw|31|3|6|0|2|91|1 cup
+Cauliflower, raw|27|2|5|0|2|107|1 cup
+Brussels sprouts, cooked|56|4|11|1|3|156|1 cup
+Cabbage, green raw|22|1|5|0|3|89|1 cup
+Cabbage, red raw|28|1|7|0|3|89|1 cup
+Spinach, cooked|41|5|7|0|1|180|1 cup
+Swiss chard, cooked|35|3|7|0|2|175|1 cup
+Romaine lettuce|8|1|2|0|1|47|1 cup
+Iceberg lettuce|10|1|2|0|1|72|1 cup
+Mixed greens|9|1|2|0|1|40|1 cup
+Carrots, raw|52|1|12|0|6|128|1 cup
+Carrot, medium|25|1|6|0|3|61|1 carrot
+Celery stalk|6|0|1|0|1|40|1 stalk
+Bell pepper, red|37|1|9|0|6|119|1 pepper
+Bell pepper, green|24|1|6|0|3|119|1 pepper
+Tomato, medium|22|1|5|0|3|123|1 tomato
+Cherry tomatoes|27|1|6|0|4|149|1 cup
+Eggplant, cooked|35|1|9|0|3|99|1 cup
+Asparagus, cooked|40|4|7|0|2|180|1 cup
+Peas, green cooked|134|9|25|0|9|160|1 cup
+Corn, kernels cooked|143|5|31|2|5|164|1 cup
+Corn on the cob|99|3|22|1|5|103|1 ear
+Mushrooms, white raw|15|2|2|0|1|70|1 cup
+Mushrooms, cooked|44|3|8|1|4|156|1 cup
+Onion, raw chopped|64|2|15|0|7|160|1 cup
+Red onion, medium|44|1|10|0|5|110|1 onion
+Garlic clove|4|0|1|0|0|3|1 clove
+Leek, cooked|32|1|8|0|2|89|1 cup
+Potato, russet baked|168|5|37|0|2|173|1 medium
+Potato, red boiled|150|4|34|0|3|173|1 medium
+Beet, cooked|75|3|17|0|14|170|1 cup
+Turnip, cooked|34|1|8|0|5|156|1 cup
+Parsnip, cooked|111|2|27|0|7|156|1 cup
+Squash, butternut cooked|82|2|22|0|4|205|1 cup
+Squash, acorn cooked|115|2|30|0|0|205|1 cup
+Pumpkin, cooked|49|2|12|0|5|245|1 cup
+Radish|19|1|4|0|2|116|1 cup
+Snow peas|26|2|5|0|3|63|1 cup
+Bok choy, cooked|20|3|3|0|1|170|1 cup
+Artichoke, cooked|64|3|14|0|1|120|1 artichoke
+Okra, cooked|36|3|7|0|4|160|1 cup
+Chicken breast, grilled skinless|165|31|0|4|0|100|100 g
+Chicken thigh, skinless cooked|179|25|0|8|0|100|100 g
+Chicken drumstick, skinless cooked|155|24|0|6|0|100|100 g
+Chicken wings, baked|203|30|0|8|0|100|100 g
+Chicken wing, single fried|103|8|1|7|0|34|1 wing
+Chicken drumstick, roasted with skin|112|14|0|6|0|71|1 drumstick
+Chicken breast, whole cooked|284|53|0|6|0|172|1 breast
+Turkey breast, roasted|135|30|0|1|0|100|100 g
+Turkey thigh, roasted|170|24|0|8|0|100|100 g
+Ground beef, 90/10 cooked|217|26|0|12|0|100|100 g
+Ground beef, 70/30 cooked|332|22|0|27|0|100|100 g
+Beef sirloin, grilled|206|31|0|8|0|100|100 g
+Beef tenderloin, grilled|218|30|0|10|0|100|100 g
+Beef striploin, grilled|235|29|0|13|0|100|100 g
+Beef short ribs, braised|400|24|0|33|0|100|100 g
+Beef liver, cooked|175|27|5|5|0|100|100 g
+Pork tenderloin, roasted|143|26|0|4|0|100|100 g
+Pork belly, cooked|518|10|0|53|0|100|100 g
+Pork shoulder, pulled|239|24|0|15|0|100|100 g
+Bacon, cooked strip|43|3|0|3|0|8|1 strip
+Ham, black forest|107|17|2|3|1|100|100 g
+Lamb leg, roasted|191|28|0|8|0|100|100 g
+Lamb ground, cooked|283|25|0|20|0|100|100 g
+Veal cutlet, cooked|172|31|0|4|0|100|100 g
+Duck breast, roasted skinless|201|23|0|11|0|100|100 g
+Bison, ground cooked|179|26|0|8|0|100|100 g
+Venison, cooked|158|30|0|3|0|100|100 g
+Salmon, Atlantic baked|206|22|0|13|0|100|100 g
+Salmon, sockeye baked|168|27|0|6|0|100|100 g
+Salmon, smoked|117|18|0|4|0|100|100 g
+Tuna steak, seared|144|30|0|2|0|100|100 g
+Haddock, baked|112|24|0|1|0|100|100 g
+Tilapia, baked|128|26|0|3|0|100|100 g
+Sole, baked|117|24|0|2|0|100|100 g
+Sardines, canned in oil|208|25|0|11|0|100|100 g
+Anchovies, canned|210|29|0|10|0|100|100 g
+Prawns, grilled|99|24|0|0|0|100|100 g
+Scallops, seared|111|21|5|1|0|100|100 g
+Mussels, steamed|172|24|7|4|0|100|100 g
+Clams, steamed|148|26|5|2|0|100|100 g
+Oysters, raw|68|8|4|2|0|100|100 g
+Egg white, large|17|4|0|0|0|33|1 white
+Egg yolk, large|55|3|1|4|0|17|1 yolk
+Egg, hard boiled|78|6|1|5|1|50|1 egg
+Pecans|196|3|4|20|1|28|1 oz
+Pistachios|159|6|8|13|2|28|1 oz
+Macadamia nuts|204|2|4|21|1|28|1 oz
+Brazil nuts|187|4|3|19|1|28|1 oz
+Hazelnuts|178|4|5|17|1|28|1 oz
+Peanuts, roasted|161|7|5|14|1|28|1 oz
+Sunflower seeds|165|6|7|14|1|28|1 oz
+Pumpkin seeds|158|9|3|14|0|28|1 oz
+Chia seeds|138|5|12|9|0|28|1 oz
+Flaxseed, ground|150|5|8|12|0|28|1 oz
+Hemp hearts|166|10|3|15|1|28|1 oz
+Edamame, shelled|188|18|14|8|3|155|1 cup
+Rice, white cooked|205|4|45|0|0|158|1 cup
+Rice, brown cooked|218|5|46|2|0|195|1 cup
+Oats, rolled dry|307|11|55|5|1|80|1 cup
+Steel cut oats, cooked|170|6|29|3|0|240|1 cup
+Whole wheat pasta, cooked|174|7|37|1|1|140|1 cup
+Bread, whole wheat slice|81|4|14|1|1|32|1 slice
+Bread, sourdough slice|93|4|18|1|1|36|1 slice
+Bread, rye slice|83|3|15|1|1|32|1 slice
+Pita, whole wheat|170|6|35|2|1|64|1 pita
+Tortilla, corn|52|1|11|1|0|26|1 tortilla
+Croissant, plain|272|6|31|14|7|67|1 croissant
+Soy milk, unsweetened|80|7|4|4|1|243|1 cup
+Greek yogurt, nonfat plain|100|17|6|0|6|170|170 g
+Greek yogurt, 2% plain|145|20|8|4|7|170|170 g
+Skyr, plain|110|19|7|0|4|170|170 g
+Cottage cheese, 1%|163|28|6|2|6|226|1 cup
+Feta cheese|75|4|1|6|1|28|1 oz
+Goat cheese|103|6|0|8|0|28|1 oz
+Cream cheese|99|2|2|10|1|30|2 tbsp
+Avocado oil|124|0|0|14|0|14|1 tbsp
+Mustard, yellow|3|0|0|0|0|5|1 tsp
+Balsamic vinegar|14|0|3|0|2|16|1 tbsp
+Ranch dressing|129|0|2|13|1|30|2 tbsp
+Caesar dressing|163|1|1|17|1|30|2 tbsp
+Protein powder, whey scoop|120|24|3|1|1|31|1 scoop
+Protein bar, typical|210|20|22|7|4|60|1 bar
+Rice cake|35|1|7|0|0|9|1 cake
+Dark chocolate 70%|170|2|13|12|7|28|1 oz
+Milk chocolate|150|2|17|8|15|28|1 oz
+Beer, regular|153|2|13|0|0|355|1 can
+Beer, light|103|1|6|0|0|355|1 can
+Whisky|97|0|0|0|0|44|1.5 oz
+Vodka|97|0|0|0|0|44|1.5 oz
+Sparkling water|0|0|0|0|0|355|1 can
+Green tea|2|0|0|0|0|240|1 cup
+Black coffee|2|0|0|0|0|240|1 cup`;
 
 /* Nutrition targets — set by the user, blank until then */
 let TGT=(()=>{try{const r=localStorage.getItem("vTargets_v1"); if(r) return JSON.parse(r);}catch(e){}
@@ -1055,6 +1443,7 @@ function save(){
 }
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),2100);}
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MOVC=[["#F4714C","#F9B49C"],["#63a882","#9fd6b8"],["#6f96b8","#a6c4dc"],["#c9973f","#e8c98a"]];
 const e1rm=(w,r)=>(!w||!r)?0:w*(1+r/30);
 const dkey=d=>{const x=d||new Date();
   return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
@@ -1088,6 +1477,9 @@ function render(){nav();
     setTimeout(()=>{document.querySelectorAll(".exh").forEach(el=>el.onclick=()=>{
       const c=document.getElementById("exc"+el.dataset.ex);
       c.style.display=c.style.display==="none"?"block":"none";});
+      document.querySelectorAll(".movh").forEach(el=>el.onclick=()=>{
+        const c=document.getElementById("movc"+el.dataset.mv);
+        c.style.display=c.style.display==="none"?"block":"none";});
       const hg=document.getElementById("histgo");
       if(hg) hg.onclick=()=>{ if(confirm("Load your March–August history into the app?")) loadHistory(); };
       document.querySelectorAll("[data-restore]").forEach(el=>el.onclick=()=>{
@@ -1933,10 +2325,19 @@ function progSummary(){
     </div>
     ${mpts.length>1?chartCard("Sessions per month",span+" days of training",mpts,
        {color:"#F4714C",color2:"#F9B49C",id:20,dp:0}):""}
-    ${movers.length?`<h2 class="sec">Biggest gains</h2>`+movers.map(m=>`
-      <div class="dl"><span class="a">${esc(m.n)}
-        <u>${Math.round(m.from)} → ${Math.round(m.to)} est. 1RM · ${m.k} sessions</u></span>
-        <span class="b ok" style="font-size:15px">+${Math.round(m.pct)}%</span></div>`).join("")
+    ${movers.length?`<h2 class="sec">Biggest gains</h2>`+movers.map((m,mi)=>{
+      /* every point for this lift, so the percentage can be opened up and looked at */
+      const pts=S.filter(x=>x.sets.some(y=>y.n===m.n)).sort((a,b)=>a.date<b.date?-1:1)
+        .map(x=>({v:Math.max(...x.sets.filter(y=>y.n===m.n).map(y=>e1rm(y.w,y.r))),
+                  l:new Date(x.date).toLocaleDateString(undefined,{day:"numeric",month:"short"})}));
+      return `<div class="movw"><div class="dl movh" data-mv="${mi}" style="cursor:pointer">
+        <span class="a">${esc(m.n)}
+          <u>${Math.round(m.from)} → ${Math.round(m.to)} est. 1RM · ${m.k} sessions · tap for trend</u></span>
+        <span class="b ok" style="font-size:15px">+${Math.round(m.pct)}%</span></div>
+        <div class="movc" id="movc${mi}" style="display:none">${
+          chartCard(esc(m.n)+" — estimated 1RM", pts.length+" sessions", pts,
+            {color:MOVC[mi%MOVC.length][0], color2:MOVC[mi%MOVC.length][1], id:60+mi, dp:0})
+        }</div></div>`;}).join("")
       +`<div class="note" style="padding:8px 4px 0">Comparing the average of the first two sessions with the last two, so a single odd day can't create a gain.</div>`:""}`;}
 
 function progV(){if(!DB.sessions.length)return `<div class="wrap">${impPanel("strength")}${histHTML()}<div class="empty">No sessions logged yet.<br>Log one, or load your history above.</div><h2 class="sec">Backups</h2>${backupsHTML()}</div>`;
