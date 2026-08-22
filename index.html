@@ -2332,9 +2332,9 @@ function progSummary(){
                   l:new Date(x.date).toLocaleDateString(undefined,{day:"numeric",month:"short"})}));
       return `<div class="movw"><div class="dl movh" data-mv="${mi}" style="cursor:pointer">
         <span class="a">${esc(m.n)}
-          <u>${Math.round(m.from)} → ${Math.round(m.to)} est. 1RM · ${m.k} sessions · tap for trend</u></span>
+          <u>${Math.round(m.from)} → ${Math.round(m.to)} est. 1RM · ${m.k} sessions · tap to collapse</u></span>
         <span class="b ok" style="font-size:15px">+${Math.round(m.pct)}%</span></div>
-        <div class="movc" id="movc${mi}" style="display:none">${
+        <div class="movc" id="movc${mi}" style="display:block">${
           chartCard(esc(m.n)+" — estimated 1RM", pts.length+" sessions", pts,
             {color:MOVC[mi%MOVC.length][0], color2:MOVC[mi%MOVC.length][1], id:60+mi, dp:0})
         }</div></div>`;}).join("")
