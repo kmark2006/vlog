@@ -1350,6 +1350,9 @@ function load(){
   // arrays
   o.sessions=Array.isArray(o.sessions)?o.sessions.filter(s=>s&&s.date&&Array.isArray(s.sets)
       &&s.sets.every(x=>x&&typeof x.n==="string"&&isFinite(x.w)&&isFinite(x.r))):[];
+  o.runs=Array.isArray(o.runs)?o.runs.filter(r=>r&&/^\d{4}-\d{2}-\d{2}$/.test(r.date)
+      &&(r.mi==null||(isFinite(r.mi)&&r.mi>0&&r.mi<200))
+      &&(r.min==null||(isFinite(r.min)&&r.min>0&&r.min<600))):[];
   o.sleep=Array.isArray(o.sleep)?o.sleep.filter(s=>s&&s.date&&isFinite(s.hrs)&&s.hrs>0&&s.hrs<=16):[];
   o.weight=Array.isArray(o.weight)?o.weight.filter(w=>w&&w.date&&isFinite(w.lb)&&w.lb>=80&&w.lb<=400):[];
   o.food=Array.isArray(o.food)?o.food.filter(f=>f&&f.date&&typeof f.n==="string"&&isFinite(f.kcal)):[];
@@ -1378,10 +1381,10 @@ function mergeStored(mine){
   const wipe=Math.max(out._wipe||0, theirs._wipe||0);
   out._wipe=wipe;
   // if this copy wiped, drop anything older than the wipe
-  ["sessions","food","sleep","weight"].forEach(k=>{
+  ["sessions","food","sleep","weight","runs"].forEach(k=>{
     out[k]=(out[k]||[]).filter(x=>x && !dead.has(x._id) && !(wipe && (x._t||0)<wipe));
   });
-  ["sessions","food"].forEach(k=>{
+  ["sessions","food","runs"].forEach(k=>{
     const seen=new Set(out[k].map(x=>x._id).filter(Boolean));
     (theirs[k]||[]).forEach(x=>{
       if(!x||!x._id) return;
@@ -1423,7 +1426,7 @@ function restoreSnapshot(i){
 }
 function stampAll(){
   const now=Date.now();
-  ["sessions","food","sleep","weight"].forEach(k=>(DB[k]||[]).forEach(x=>{
+  ["sessions","food","sleep","weight","runs"].forEach(k=>(DB[k]||[]).forEach(x=>{
     if(x&&!x._id)x._id=uid(); if(x&&!x._t)x._t=now; }));
 }
 function save(){
@@ -1454,7 +1457,7 @@ function lastFor(n){for(let i=DB.sessions.length-1;i>=0;i--){const h=DB.sessions
 function bestFor(n){let b=0;DB.sessions.forEach(s=>s.sets.forEach(x=>{if(x.n===n){const v=e1rm(x.w,x.r);if(v>b)b=v;}}));return b;}
 document.getElementById("dt").textContent=new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
 
-const TABS=[["home","Home"],["ALL","Workout"],["sleep","Sleep"],["food","Food"],["weight","Weight"],["prog","Progress"]];
+const TABS=[["home","Home"],["ALL","Workout"],["runs","Runs"],["sleep","Sleep"],["food","Food"],["weight","Weight"],["prog","Progress"]];
 function nav(){document.getElementById("nav").innerHTML=TABS.map(([k,l])=>
   `<button class="nb ${tab===k?'on':''}" data-k="${k}">${l}</button>`).join("");
   document.querySelectorAll(".nb").forEach(b=>b.onclick=()=>{tab=b.dataset.k;if(tab==="ALL")day=tab;render();});}
@@ -1463,12 +1466,16 @@ function render(){nav();
   const v=document.getElementById("view"),bar=document.getElementById("bar");
   if(tab==="home"){v.innerHTML=homeV();bar.innerHTML="";bar.style.display="none";document.getElementById("hm").classList.add("hide");
     const go=(id,t)=>{const el=document.getElementById(id);if(el)el.onclick=()=>{tab=t;if(t==="ALL")day=t;render();};};
-    go("goS",window.__next||day);go("goZ","sleep");go("goF","food");go("goW","weight");go("goP","prog");return;}
+    go("goS",window.__next||day);go("goZ","sleep");go("goR","runs");go("goF","food");go("goW","weight");go("goP","prog");return;}
   bar.style.display="flex";document.getElementById("hm").classList.remove("hide");
   if(tab==="weight"){v.innerHTML=weightV();bar.innerHTML=`<button class="btn gh2" id="bk">Back</button><button class="btn" id="wsv">Save weight</button>`;
     document.getElementById("bk").onclick=()=>{tab="home";render();};
     document.getElementById("wsv").onclick=()=>saveWeight(document.getElementById("wlb").value,document.getElementById("wbf").value);
     wireWeight();wireImp("weight");return;}
+  if(tab==="runs"){v.innerHTML=runsV();
+    bar.innerHTML=`<button class="btn gh2" id="bk">Back</button><button class="btn" id="rsv">Save run</button>`;
+    document.getElementById("bk").onclick=()=>{tab="home";render();};
+    wireRuns();return;}
   if(tab==="food"){v.innerHTML=foodV();bar.innerHTML=`<button class="btn gh2" id="x">Export</button><button class="btn" id="bk">Back</button>`;
     document.getElementById("x").onclick=csv;document.getElementById("bk").onclick=()=>{tab="home";render();};wireFood();wireFoodSay();wireImp("food");wireTargets();wireQuickAdd();return;}
   if(tab==="sleep"){v.innerHTML=sleepV();bar.innerHTML=`<button class="btn gh2" id="bk">Back</button><button class="btn gh2" id="x">Export</button><button class="btn" id="ss">Save last night</button>`;
@@ -1660,6 +1667,14 @@ function homeV(){
      <svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M8 13v8M17 3c-1.5 1.5-2 4-2 6s.5 3 2 3v9"/></svg>
      <span class="tx"><b>Log Food</b><i>${fk?fp+"g protein of "+TGT.p+"g today":"Nothing logged today"}</i></span>
      <span class="num"><span class="k">${fk||0}</span><span class="u">kcal today</span></span>
+   </button>
+   <button class="wide" id="goR">
+     <svg viewBox="0 0 24 24"><path d="M13 4.5a1.6 1.6 0 1 0 0-.1"/><path d="M8 21l2.5-5.5 3-2 1-4 3.5 2.5 2.5-.5M6.5 11l3-2.5 4-1"/><path d="M10.5 15.5L7.5 14"/></svg>
+     <span class="tx"><b>Log Run</b><i>${(()=>{const R=(DB.runs||[]);if(!R.length)return "Miles, minutes, incline";
+       const l=R.slice().sort((a,b)=>a.date<b.date?-1:1).pop();
+       const p=paceOfR(l); return (l.mi?l.mi.toFixed(2)+" mi":"")+(p?" · "+fmtPace(p):"");})()}</i></span>
+     <span class="num"><span class="k">${(()=>{const w=(DB.runs||[]).filter(x=>x.date>=daysAgo(6));
+       return w.length?w.reduce((a,b)=>a+(b.mi||0),0).toFixed(1):"—";})()}</span><span class="u">mi this week</span></span>
    </button>
    <button class="wide w2" id="goW">
      <svg viewBox="0 0 24 24"><path d="M12 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M5 21h14l-2.5-11h-9L5 21z"/><path d="M9 14h6"/></svg>
@@ -1969,6 +1984,96 @@ function runImport(kind,txt,stat,F){
 function foodTotals(d){const r=(DB.food||[]).filter(x=>x.date===(d||dkey()));
   return {kcal:r.reduce((a,b)=>a+b.kcal,0),p:r.reduce((a,b)=>a+b.p,0),
           c:r.reduce((a,b)=>a+b.c,0),f:r.reduce((a,b)=>a+b.f,0),s:r.reduce((a,b)=>a+b.s,0),rows:r};}
+
+/* ---------- RUNS (vlog-v2-10) ----------
+   Own tab. Cardio was being typed into the Workout box, which is a strength
+   parser and rejects it ("Ran 1.67 miles at an incline of 9" -> COULD NOT READ).
+   Miles and incline are her units; nothing here converts them behind her back. */
+
+function runTotals(list){
+  const mi=list.reduce((a,b)=>a+(b.mi||0),0);
+  const min=list.reduce((a,b)=>a+(b.min||0),0);
+  return {mi:mi, min:min, n:list.length};
+}
+function paceOfR(r){ return (r.mi&&r.min)? r.min/r.mi : null; }
+function fmtPace(p){
+  if(p==null) return "";
+  const m=Math.floor(p), s=Math.round((p-m)*60);
+  return m+":"+String(s).padStart(2,"0")+"/mi";
+}
+
+function runsV(){
+  const R=(DB.runs||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+  const last=R[R.length-1];
+  const wk=R.filter(x=>x.date>=daysAgo(6)), mo=R.filter(x=>x.date>=daysAgo(29));
+  const tW=runTotals(wk), tM=runTotals(mo);
+  const paced=R.filter(x=>paceOfR(x));
+
+  const rows=R.slice(-40).reverse().map((x,i)=>{
+    const p=paceOfR(x);
+    return `<div class="dl" style="display:block">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <span class="a">${new Date(x.date+"T12:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})}
+          ${x.kind&&x.kind!=="run"?`<u>${esc(x.kind)}</u>`:""}</span>
+        <span class="b">${x.mi?x.mi.toFixed(2)+" mi":"—"}<u>${x.min?x.min+" min":""}${p?" · "+fmtPace(p):""}</u></span></div>
+      ${(x.incline||x.note)?`<div style="font-size:10px;color:var(--dimmer);margin-top:3px">
+        ${x.incline?`incline ${x.incline}`:""}${x.incline&&x.note?" · ":""}${x.note?esc(x.note):""}</div>`:""}
+      <button class="xdel" data-rdel="${R.length-1-i}">×</button></div>`;}).join("")
+    || `<div class="empty">No runs yet.<br>Log one below — miles and minutes are all it needs.</div>`;
+
+  return `<div class="wrap">
+   <div class="scards">
+     <div class="sc"><div class="v">${tW.mi.toFixed(1)}<u>mi</u></div><div class="k">last 7 days · ${tW.n} run${tW.n===1?"":"s"}</div></div>
+     <div class="sc"><div class="v">${tM.mi.toFixed(0)}<u>mi</u></div><div class="k">last 30 days · ${tM.min} min</div></div>
+     <div class="sc"><div class="v">${last&&paceOfR(last)?fmtPace(paceOfR(last)).replace("/mi",""):"—"}</div><div class="k">last pace /mi</div></div>
+   </div>
+   ${paced.length>1?chartCard("Pace","minutes per mile · lower is faster",paced.map(x=>({v:paceOfR(x),
+      l:new Date(x.date+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})})),
+      {color:"#5ec8c0",color2:"#a8e6e1",id:30,invert:true,dp:2}):""}
+   ${R.length>1?chartCard("Distance","miles per run",R.map(x=>({v:x.mi||0,
+      l:new Date(x.date+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"})})),
+      {color:"#F4714C",color2:"#F9B49C",id:31,dp:2}):""}
+
+   <div class="card open"><div class="chead" style="cursor:default"><div class="cn"><b>Log a run</b>
+     <i>${new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</i></div></div>
+     <div class="cbody" style="display:block">
+       <div class="srow">
+         <div class="fg"><span class="fl">Miles</span><input class="n" id="rmi" inputmode="decimal" placeholder="1.67"></div>
+         <div class="fg"><span class="fl">Minutes</span><input class="n" id="rmin" inputmode="numeric" placeholder="20"></div>
+         <div class="fg"><span class="fl">Incline</span><input class="n" id="rinc" inputmode="decimal" placeholder="9"></div>
+       </div>
+       <div class="srow" style="border-bottom:0"><div class="fg" style="flex:1.4"><span class="fl">Note — optional</span>
+         <input class="n" id="rnote" style="font-family:var(--sans);font-size:15px;text-align:left;padding-left:11px" placeholder="treadmill, felt easy"></div>
+         <div class="fg"><span class="fl">Type</span>
+           <select class="n" id="rkind" style="font-family:var(--sans);font-size:15px">
+             <option value="run">Run</option><option value="treadmill">Treadmill</option>
+             <option value="walk">Walk</option><option value="intervals">Intervals</option>
+             <option value="stairmaster">Stairmaster</option></select></div>
+       </div>
+     </div></div>
+   <h2 class="sec">History${R.length?" · "+R.length+" run"+(R.length===1?"":"s"):""}</h2>${rows}
+   <div class="note">Miles and minutes, the way you record them — nothing is converted. Pace is worked out for you.
+   Cardio lives here rather than in Workout because that box reads sets and reps and will reject a run.</div></div>`;}
+
+function wireRuns(){
+  const b=document.getElementById("rsv");
+  if(b) b.onclick=()=>{
+    const num=id=>{const v=parseFloat((document.getElementById(id)||{}).value); return isFinite(v)?v:null;};
+    const mi=num("rmi"), min=num("rmin"), inc=num("rinc");
+    if((mi==null||mi<=0)&&(min==null||min<=0)){toast("Enter miles or minutes");return;}
+    DB.runs=DB.runs||[];
+    DB.runs.push({date:dkey(), mi:(mi&&mi>0&&mi<200)?mi:null, min:(min&&min>0&&min<600)?min:null,
+      incline:(inc!=null&&inc>=0&&inc<=40)?inc:null,
+      kind:(document.getElementById("rkind")||{}).value||"run",
+      note:((document.getElementById("rnote")||{}).value||"").trim()||null});
+    DB.runs.sort((a,b)=>a.date<b.date?-1:1);
+    ["rmi","rmin","rinc","rnote"].forEach(i=>{const e=document.getElementById(i); if(e) e.value="";});
+    save(); render(); toast("Run logged");};
+  document.querySelectorAll("[data-rdel]").forEach(el=>el.onclick=()=>{
+    const r=(DB.runs||[])[+el.dataset.rdel];
+    if(r){ tomb(r._id); DB.runs=DB.runs.filter(x=>x!==r); save(); render(); toast("Removed"); }});
+}
+
 function foodV(){
   const T=foodTotals(), pc=(v,t)=>Math.min(100,Math.round(v/t*100));
   const rows=T.rows.slice().reverse().map((x,i)=>`<div class="fr">
@@ -2026,8 +2131,14 @@ function foodV(){
          <input class="n" id="qn" style="font-family:var(--sans);font-size:15px;text-align:left;padding-left:11px" placeholder="e.g. mum's lasagne"></div>
        <div class="fg"><span class="fl">Calories</span><input class="n" id="qk" inputmode="numeric" placeholder="450"></div>
      </div>
+     <div class="srow" style="border-bottom:0;padding:6px 0 0">
+       <div class="fg"><span class="fl">Protein g</span><input class="n" id="qp" inputmode="decimal" placeholder="—"></div>
+       <div class="fg"><span class="fl">Carbs g</span><input class="n" id="qc" inputmode="decimal" placeholder="—"></div>
+       <div class="fg"><span class="fl">Fat g</span><input class="n" id="qf" inputmode="decimal" placeholder="—"></div>
+       <div class="fg"><span class="fl">Sugar g</span><input class="n" id="qs" inputmode="decimal" placeholder="—"></div>
+     </div>
      <div class="row"><button class="go2" id="qadd">Add this food</button></div>
-     <div class="hintl" style="margin-top:8px">Protein, carbs and fat stay blank. Calories alone still count toward the day, and the food is saved so you can search it next time.</div>
+     <div class="hintl" style="margin-top:8px">Calories alone is still enough — leave the macros blank and it saves. Fill any of them and they count toward the day's totals and are remembered for next time.</div>
    </div>
       <h2 class="sec">Today</h2><div id="flist">${rows}</div>
    <div class="note">${TGT.kcal?`Targets: ${TGT.kcal} kcal · ${TGT.p}g protein · ${TGT.c}g carbs · ${TGT.f}g fat. `:""}Values come from a food database, not from measuring your plate — treat them as directional, roughly ±15%.</div></div>`;}
@@ -2072,12 +2183,18 @@ function wireQuickAdd(){
     const k=parseFloat(document.getElementById("qk").value);
     if(!n){toast("Give it a name");return;}
     if(!k||k<=0||k>5000){toast("Enter the calories");return;}
+    /* macros are optional — blank stays 0 and the entry still saves on calories alone */
+    const g=id=>{const v=parseFloat((document.getElementById(id)||{}).value);
+      return (isFinite(v)&&v>=0&&v<=500)?v:0;};
+    const P=g("qp"), C=g("qc"), F=g("qf"), S=g("qs");
     DB.food=DB.food||[];
-    DB.food.push({date:dkey(),n:n,q:1,unit:"serving",kcal:k,p:0,c:0,f:0,s:0});
+    DB.food.push({date:dkey(),n:n,q:1,unit:"serving",kcal:k,p:P,c:C,f:F,s:S});
     DB.customFoods=DB.customFoods||[];
     if(!DB.customFoods.some(x=>x.n.toLowerCase()===n.toLowerCase()))
-      DB.customFoods.push({n:n,kcal:k,p:0,c:0,f:0,s:0,sg:100,sl:"1 serving"});
-    save(); render(); toast(n+" added");};
+      DB.customFoods.push({n:n,kcal:k,p:P,c:C,f:F,s:S,sg:100,sl:"1 serving"});
+    ["qn","qk","qp","qc","qf","qs"].forEach(i=>{const e=document.getElementById(i); if(e) e.value="";});
+    save(); render();
+    toast(n+" added"+((P||C||F)?` · ${P}p ${C}c ${F}f`:""));};
 }
 function wireTargets(){
   const s=document.getElementById("tgtsave");
