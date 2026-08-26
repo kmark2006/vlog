@@ -428,7 +428,8 @@ function parseSleep(raw){
 function bestFood(phrase,db){
   phrase=phrase.replace(/\bdouble\s+doubles?\b/gi,"coffee double double")
     .replace(/\b0\s*%/g," nonfat ")
-    .replace(/\btoast\b/gi,"bread").replace(/\bchicken breasts?\b/gi,"chicken breast");
+    .replace(/\btoast\b/gi,"bread").replace(/\bchicken breasts?\b/gi,"chicken breast")
+    .replace(/\bdr\.?\s+pepper\b/gi,"dr pepper soda");   /* "pepper" alone matches the vegetable */
   const words=phrase.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/)
     .filter(w=>w.length>2 && !["the","and","some","with","was","had","ate","eat","for","cup","cups","bowl","plate","serving","servings","of","food","meal","today","lunch","dinner","breakfast","snack"].includes(w));
   if(!words.length) return null;
@@ -619,12 +620,10 @@ Burrito, chicken|206|11|25|7|2|380|1 burrito
 Sandwich, turkey|220|14|28|6|4|200|1 sandwich
 Soup, chicken noodle|36|2.1|4.2|1.2|0.6|245|1 cup
 Chili con carne|110|9|9|4.5|2|250|1 cup
-Beer|43|0.5|3.6|0|0|355|1 can
 Wine, red|85|0.1|2.6|0|0.6|148|1 glass
 Whisky / spirits|250|0|0|0|0|44|1 shot
 Coffee, black|1|0.1|0|0|0|240|1 cup
 Orange juice|45|0.7|10|0.2|8.4|248|1 cup
-Cola|41|0|11|0|11|355|1 can
 Sports drink|26|0|6.9|0|6|591|1 bottle
 Honey|304|0.3|82|0|82|21|1 tbsp
 Maple syrup|260|0|67|0|60|20|1 tbsp
@@ -797,13 +796,9 @@ Smoothie, fruit|54|1|13|0.3|11|250|1 glass
 Green juice|38|1|8|0.2|6|250|1 glass
 Apple juice|46|0.1|11|0.1|10|248|1 cup
 Lemonade|40|0.1|10|0|10|248|1 cup
-Iced tea, sweetened|29|0|7|0|7|250|1 cup
-Coffee with milk|20|1|2|1|2|240|1 cup
 Latte|56|3|5|2.5|5|350|1 medium
 Cappuccino|41|2.5|3.5|2|3.5|180|1 cup
 Hot chocolate|77|3.5|11|2.5|9|250|1 cup
-Energy drink|45|0|11|0|11|250|1 can
-Diet soda|0|0|0|0|0|355|1 can
 Kombucha|29|0|7|0|6|240|1 cup
 Coconut water|19|0.7|3.7|0.2|2.6|240|1 cup
 Gin and tonic|90|0|9|0|9|200|1 glass
@@ -1305,7 +1300,638 @@ Whisky|97|0|0|0|0|44|1.5 oz
 Vodka|97|0|0|0|0|44|1.5 oz
 Sparkling water|0|0|0|0|0|355|1 can
 Green tea|2|0|0|0|0|240|1 cup
-Black coffee|2|0|0|0|0|240|1 cup`;
+Black coffee|2|0|0|0|0|240|1 cup
+Apricot, dried|17|0|4|0|4|8|1 piece
+Ackee, cooked|151|3|8|15|0|100|100 g
+Breadfruit, cooked|103|1|27|0|11|100|100 g
+Cactus pear, prickly|42|1|10|1|0|103|1 fruit
+Cherimoya|176|4|44|1|31|235|1 cup
+Clementine|35|1|9|0|7|74|1 clementine
+Coconut meat, fresh|283|3|12|27|5|80|1 cup
+Coconut water, fresh|46|2|9|0|6|240|1 cup
+Currants, black|71|2|17|0|0|112|1 cup
+Custard apple|101|2|25|1|0|100|100 g
+Dragon fruit, pitaya|60|1|13|0|8|100|100 g
+Durian|357|4|66|13|0|243|1 cup
+Elderberries|106|1|27|1|0|145|1 cup
+Feijoa|55|1|13|1|8|100|100 g
+Gooseberries|66|1|15|1|0|150|1 cup
+Guava|37|1|8|1|5|55|1 fruit
+Jackfruit, raw|157|3|38|1|31|165|1 cup
+Jujube, fresh|79|1|20|0|0|100|100 g
+Kumquat|13|0|3|0|2|19|1 fruit
+Longan|60|1|15|0|0|100|100 g
+Loquat|47|0|12|0|0|100|100 g
+Lychee|66|1|17|0|15|100|100 g
+Mangosteen|73|0|18|1|0|100|100 g
+Mulberries|60|2|14|1|11|140|1 cup
+Passion fruit|17|0|4|0|2|18|1 fruit
+Persimmon, Fuyu|118|1|31|0|21|168|1 fruit
+Physalis, cape gooseberry|53|2|11|1|0|100|100 g
+Plantain, ripe raw|218|2|57|1|27|179|1 plantain
+Plantain, fried|320|2|58|11|24|150|1 cup
+Pomelo|231|5|59|0|0|610|1 fruit
+Quince|52|0|14|0|0|92|1 fruit
+Rambutan|75|1|19|0|0|100|100 g
+Sapodilla|141|1|34|2|0|170|1 fruit
+Soursop|148|2|38|1|30|225|1 cup
+Star fruit, carambola|28|1|6|0|4|91|1 cup
+Tamarind, raw|287|3|75|1|69|120|1 cup
+Ugli fruit|45|1|11|0|0|100|100 g
+Yuzu juice|10|0|2|0|1|15|1 tbsp
+Acai pulp, unsweetened|70|1|4|5|0|100|100 g
+Goji berries, dried|98|4|21|0|0|28|1 oz
+Cranberries, dried sweetened|123|0|33|0|29|40|quarter cup
+Banana, plantain chips|150|1|17|9|1|28|1 oz
+Melon, galia|46|1|11|0|10|150|1 cup
+Watermelon, seedless wedge|86|2|22|0|18|286|1 wedge
+Grapes, green|104|1|27|0|23|151|1 cup
+Grapes, black|104|1|27|0|23|151|1 cup
+Blood orange|70|1|18|0|14|140|1 orange
+Blackcurrant|71|2|17|0|0|112|1 cup
+Boysenberries|66|1|16|0|0|132|1 cup
+Loganberries|81|2|19|0|0|147|1 cup
+Bok choy, raw|9|1|2|0|1|70|1 cup
+Broccolini, cooked|35|3|6|0|2|100|100 g
+Broccoli rabe, cooked|33|4|3|0|0|100|100 g
+Brussels sprouts, roasted|85|4|11|4|3|156|1 cup
+Burdock root, cooked|110|3|26|0|4|125|1 cup
+Cassava, boiled|165|1|39|0|2|100|100 g
+Celeriac, cooked|42|2|9|0|2|155|1 cup
+Chayote, cooked|38|1|8|1|3|160|1 cup
+Chicory, raw|8|1|2|0|0|29|1 cup
+Collard greens, cooked|63|5|11|1|1|190|1 cup
+Daikon radish, raw|18|1|4|0|3|116|1 cup
+Endive|8|1|2|0|0|50|1 cup
+Fennel bulb, raw|27|1|6|0|3|87|1 cup
+Fiddleheads, cooked|34|5|6|0|0|100|100 g
+Jerusalem artichoke|110|3|26|0|14|150|1 cup
+Jicama, raw|46|1|11|0|2|120|1 cup
+Kohlrabi, cooked|48|3|11|0|5|165|1 cup
+Lotus root, cooked|66|2|16|0|0|100|100 g
+Mustard greens, cooked|36|4|6|0|0|140|1 cup
+Napa cabbage, raw|12|1|2|0|1|70|1 cup
+Nopales, cooked|22|2|5|0|2|150|1 cup
+Okra, raw|33|2|7|0|1|100|1 cup
+Parsnip, roasted|130|2|30|1|8|156|1 cup
+Rapini, cooked|33|4|3|0|0|100|100 g
+Rutabaga, cooked|51|2|12|0|8|170|1 cup
+Salsify, cooked|92|4|21|0|0|135|1 cup
+Seaweed, nori sheet|5|1|1|0|0|3|1 sheet
+Seaweed, wakame|36|2|7|0|1|80|1 cup
+Shiitake, cooked|81|2|21|0|6|145|1 cup
+Sunchoke, raw|110|3|26|0|14|150|1 cup
+Swiss chard, raw|7|1|1|0|0|36|1 cup
+Taro, cooked|187|1|46|0|1|132|1 cup
+Tomatillo|42|1|8|1|5|132|1 cup
+Turnip greens, cooked|29|2|6|0|1|144|1 cup
+Water chestnuts, canned|70|1|17|0|3|124|1 cup
+Watercress|4|1|0|0|0|34|1 cup
+Yam, cooked|158|2|37|0|1|136|1 cup
+Yuca fries|300|2|43|13|2|150|1 cup
+Zucchini, grilled|33|2|6|1|5|180|1 cup
+Aubergine, grilled|38|1|9|0|3|100|100 g
+Artichoke hearts, marinated|110|2|6|9|1|100|100 g
+Asparagus, grilled|40|4|7|0|2|180|1 cup
+Beetroot, roasted|75|3|17|0|14|170|1 cup
+Cabbage, savoy cooked|35|3|8|0|2|145|1 cup
+Cauliflower, roasted|60|3|8|3|3|107|1 cup
+Edamame, in pod|120|11|10|5|2|100|100 g
+Green beans, raw|31|2|7|0|3|100|1 cup
+Peas, snap raw|41|3|7|0|4|98|1 cup
+Pepper, yellow|50|2|12|0|6|186|1 pepper
+Pepper, jalapeno|4|0|1|0|1|14|1 pepper
+Pepper, poblano|13|1|3|0|2|45|1 pepper
+Squash, spaghetti cooked|42|1|10|0|4|155|1 cup
+Squash, delicata cooked|82|2|22|0|4|205|1 cup
+Sweet potato, mashed|249|4|58|0|19|328|1 cup
+Potato, fingerling roasted|140|3|31|0|2|150|150 g
+Salmon nigiri|60|4|9|1|1|30|1 piece
+Tuna nigiri|50|5|8|0|1|30|1 piece
+Yellowtail nigiri|55|5|8|1|1|30|1 piece
+Shrimp nigiri|48|4|9|0|1|30|1 piece
+Eel nigiri, unagi|75|4|9|3|2|32|1 piece
+Egg nigiri, tamago|60|3|9|2|3|32|1 piece
+Scallop nigiri|50|4|9|0|1|30|1 piece
+Octopus nigiri, tako|45|5|8|0|1|30|1 piece
+Squid nigiri, ika|45|4|8|0|1|30|1 piece
+Salmon roe gunkan, ikura|60|5|8|2|1|30|1 piece
+Salmon sashimi, 3 pieces|90|14|0|4|0|60|3 pieces
+Tuna sashimi, 3 pieces|75|16|0|1|0|60|3 pieces
+Yellowtail sashimi, 3 pieces|90|14|0|3|0|60|3 pieces
+Mackerel sashimi, 3 pieces|120|13|0|8|0|60|3 pieces
+Scallop sashimi, 3 pieces|55|10|3|0|0|60|3 pieces
+Octopus sashimi, 3 pieces|50|11|1|1|0|60|3 pieces
+Sea bream sashimi, 3 pieces|80|15|0|2|0|60|3 pieces
+Salmon belly sashimi, 3 pieces|150|12|0|11|0|60|3 pieces
+Salmon roll, 6 pieces|250|13|36|5|4|170|6 pieces
+Tuna roll, tekkamaki 6 pieces|210|14|33|2|4|160|6 pieces
+Cucumber roll, kappamaki 6 pieces|140|3|31|1|4|150|6 pieces
+Avocado roll, 6 pieces|200|4|34|6|4|160|6 pieces
+Salmon avocado roll, 6 pieces|280|13|36|9|4|180|6 pieces
+Dragon roll, 8 pieces|420|16|56|14|8|250|8 pieces
+Rainbow roll, 8 pieces|420|24|50|12|7|260|8 pieces
+Dynamite roll, 8 pieces|480|16|56|21|8|250|8 pieces
+Philadelphia roll, 8 pieces|400|14|50|15|6|240|8 pieces
+Spider roll, 8 pieces|450|14|52|19|7|250|8 pieces
+Caterpillar roll, 8 pieces|400|12|58|13|8|250|8 pieces
+Volcano roll, 8 pieces|520|18|58|23|9|260|8 pieces
+Chirashi bowl|500|38|62|8|6|400|1 bowl
+Poke bowl, salmon|560|34|62|18|8|450|1 bowl
+Poke bowl, tuna|520|38|60|13|8|450|1 bowl
+Miso soup|40|3|5|1|1|240|1 bowl
+Edamame, salted|190|18|14|8|3|155|1 cup
+Gyoza, pork 5 pieces|250|10|28|11|2|125|5 pieces
+Tempura, shrimp 3 pieces|190|10|16|9|1|85|3 pieces
+Tempura, vegetable|280|5|33|14|4|120|1 order
+Chicken katsu with rice|780|42|92|26|4|450|1 plate
+Tonkatsu with rice|820|38|94|32|5|450|1 plate
+Chicken teriyaki with rice|700|40|95|17|22|450|1 plate
+Beef teriyaki with rice|760|42|92|24|22|450|1 plate
+Ramen, shoyu|650|32|85|20|6|700|1 bowl
+Ramen, miso|750|34|88|29|8|700|1 bowl
+Udon, kake|400|13|80|3|4|600|1 bowl
+Soba, zaru cold|340|16|68|2|3|300|1 serving
+Donburi, gyudon beef bowl|730|32|98|22|12|450|1 bowl
+Onigiri, salmon|180|5|36|2|1|110|1 piece
+Onigiri, tuna mayo|220|6|36|6|1|110|1 piece
+Takoyaki, 6 pieces|320|12|38|13|4|180|6 pieces
+Okonomiyaki|560|22|62|24|10|350|1 piece
+Karaage, chicken|300|22|14|17|1|130|1 order
+Wasabi|5|0|1|0|0|5|1 tsp
+Soy sauce, low sodium|8|1|1|0|0|15|1 tbsp
+Pickled ginger, gari|10|0|2|0|2|15|1 tbsp
+Almond milk, sweetened vanilla|91|1|16|3|14|240|1 cup
+Almond milk, barista|60|1|6|4|4|240|1 cup
+Oat milk, unsweetened|80|3|13|2|1|240|1 cup
+Oat milk, barista|130|3|17|6|7|240|1 cup
+Soy milk, vanilla|105|7|10|4|6|240|1 cup
+Coconut milk beverage|45|0|2|4|0|240|1 cup
+Cashew milk, unsweetened|25|1|1|2|0|240|1 cup
+Rice milk|115|1|22|2|13|240|1 cup
+Hemp milk, unsweetened|60|3|1|5|0|240|1 cup
+Macadamia milk, unsweetened|50|1|1|5|0|240|1 cup
+Pea milk, unsweetened|70|8|0|4|0|240|1 cup
+Flax milk, unsweetened|25|0|1|2|0|240|1 cup
+Lactose-free milk, 2%|122|8|12|5|12|240|1 cup
+Milk, 1%|102|8|12|2|12|244|1 cup
+Milk, chocolate 1%|158|8|26|2|24|250|1 cup
+Buttermilk|98|8|12|2|12|245|1 cup
+Kefir, plain|104|9|12|2|12|240|1 cup
+Cream, half and half|39|1|1|3|1|30|2 tbsp
+Cream, heavy whipping|103|1|1|11|1|30|2 tbsp
+Sour cream|59|1|1|6|1|30|2 tbsp
+Sour cream, light|40|2|2|3|2|30|2 tbsp
+Creme fraiche|110|1|1|11|1|30|2 tbsp
+Evaporated milk|42|2|3|2|3|30|2 tbsp
+Condensed milk, sweetened|122|3|21|3|21|38|2 tbsp
+Greek yogurt, 0% vanilla|130|17|15|0|13|170|170 g
+Greek yogurt, 5% plain|180|17|8|9|7|170|170 g
+Greek yogurt, strawberry 2%|150|15|17|4|14|170|170 g
+Skyr, vanilla|130|19|12|0|9|170|170 g
+Icelandic yogurt, plain 0%|100|18|7|0|4|170|170 g
+Yogurt, plain whole milk|150|8|11|8|11|245|1 cup
+Yogurt, low fat fruit|233|10|43|2|43|245|1 cup
+Yogurt, coconut dairy-free|180|1|14|13|8|150|150 g
+Yogurt, almond dairy-free|140|5|13|8|9|150|150 g
+Yogurt, oat dairy-free|150|3|22|6|11|150|150 g
+Yogurt, drinkable plain|120|9|18|1|17|200|1 bottle
+Kefir, strawberry|140|9|20|2|20|240|1 cup
+Cottage cheese, 4%|206|23|8|9|8|226|1 cup
+Ricotta, part skim|171|14|6|10|6|124|half cup
+Mascarpone|120|2|1|13|1|30|2 tbsp
+Cream cheese, light|60|3|2|5|2|30|2 tbsp
+Quark, plain|80|14|4|0|4|150|150 g
+Skyr, blueberry|140|18|15|0|11|170|170 g
+Brie|95|6|0|8|0|28|1 oz
+Camembert|85|6|0|7|0|28|1 oz
+Gouda|101|7|1|8|1|28|1 oz
+Havarti|105|6|0|9|0|28|1 oz
+Swiss cheese|108|8|0|8|0|28|1 oz
+Provolone|98|7|1|7|0|28|1 oz
+Blue cheese|100|6|1|8|0|28|1 oz
+Halloumi|110|7|1|9|1|28|1 oz
+Paneer|98|7|1|8|1|28|1 oz
+Manchego|110|7|0|9|0|28|1 oz
+Gruyere|117|8|0|9|0|28|1 oz
+Cheese string, mozzarella|80|6|1|6|0|24|1 stick
+Oatmeal, instant plain packet|100|4|19|2|0|28|1 packet
+Oatmeal, instant maple brown sugar|160|4|33|2|12|43|1 packet
+Oatmeal, instant apple cinnamon|130|3|27|2|12|35|1 packet
+Oatmeal, overnight with milk|300|12|45|8|12|350|1 jar
+Oatmeal, protein|320|20|42|8|8|300|1 bowl
+Steel cut oats, dry|150|5|27|3|0|40|quarter cup
+Rolled oats, dry half cup|150|5|27|3|0|40|half cup
+Quick oats, dry|150|5|27|3|1|40|half cup
+Muesli, dry|290|8|66|5|18|85|1 cup
+Granola, dry|300|8|48|11|14|60|half cup
+Granola, low sugar|240|10|30|10|4|60|half cup
+Porridge, with water|130|5|23|3|0|250|1 bowl
+Congee, plain|110|2|24|0|0|250|1 bowl
+Granola bar, Nature Valley oats and honey|190|3|29|7|11|42|2 bars
+Granola bar, Quaker Chewy chocolate chip|100|1|17|3|7|24|1 bar
+Granola bar, Kind dark chocolate nut|200|6|16|15|5|40|1 bar
+Granola bar, Kind peanut butter|190|7|17|14|5|40|1 bar
+Granola bar, Clif Bar chocolate chip|250|9|45|5|21|68|1 bar
+Granola bar, RXBAR chocolate sea salt|210|12|24|9|13|52|1 bar
+Granola bar, Larabar apple pie|190|4|24|10|18|45|1 bar
+Granola bar, MadeGood chocolate chip|100|1|16|4|6|24|1 bar
+Granola bar, Nutri-Grain strawberry|130|2|25|3|12|37|1 bar
+Granola bar, Special K protein|180|10|18|7|7|45|1 bar
+Granola bar, Fibre 1 chocolate|140|2|29|4|9|40|1 bar
+Granola bar, Quaker Dipps caramel|150|2|22|6|11|31|1 bar
+Protein bar, Quest chocolate chip|190|21|21|8|1|60|1 bar
+Protein bar, ONE birthday cake|220|20|23|8|1|60|1 bar
+Protein bar, Barebells caramel|200|20|17|8|2|55|1 bar
+Protein bar, Simply Protein|150|15|15|4|2|40|1 bar
+Bread, white slice|79|2|15|1|2|29|1 slice
+Bread, multigrain slice|90|4|15|2|2|33|1 slice
+Bread, 12 grain slice|110|5|18|2|3|38|1 slice
+Bread, pumpernickel slice|80|3|15|1|0|32|1 slice
+Bread, ezekiel sprouted slice|80|4|15|1|0|34|1 slice
+Bread, brioche slice|130|4|18|5|4|40|1 slice
+Bread, focaccia|180|5|28|5|1|60|1 piece
+Bread, ciabatta roll|200|7|38|2|1|70|1 roll
+Bread, baguette 3 inch|130|5|25|1|1|50|1 piece
+Bread, challah slice|130|4|22|3|4|45|1 slice
+Bread, cornbread|198|4|33|6|11|65|1 piece
+Bread, banana slice|200|3|33|7|18|60|1 slice
+Bread, garlic|180|4|22|8|1|50|1 slice
+Bread, gluten free slice|80|1|14|2|1|30|1 slice
+Bread, keto low carb slice|40|5|6|1|0|30|1 slice
+Bread, protein slice|100|8|12|2|1|40|1 slice
+Roti|120|3|18|4|0|45|1 piece
+Chapati|104|3|18|2|0|40|1 piece
+Paratha|260|5|36|11|1|80|1 piece
+Injera|130|4|26|1|1|90|1 piece
+Arepa|220|4|38|6|1|90|1 piece
+Bao bun, plain|130|4|25|2|4|50|1 bun
+Pretzel, soft|380|10|80|3|10|120|1 pretzel
+Croissant, almond|420|9|46|23|18|90|1 croissant
+Danish, cheese|280|5|30|16|13|75|1 pastry
+Scone, plain|350|7|48|15|12|100|1 scone
+Crumpet|90|3|18|0|1|55|1 crumpet
+English muffin, whole wheat|120|5|23|1|2|57|1 muffin
+Tortilla, whole wheat large|140|5|24|4|1|49|1 tortilla
+Tortilla, low carb high fibre|60|8|14|2|0|42|1 tortilla
+Wrap, spinach|170|5|30|4|1|60|1 wrap
+Crunchy Taco Supreme, Taco Bell|190|8|15|11|2|113|1 taco
+Soft Taco Supreme beef, Taco Bell|210|9|21|10|3|135|1 taco
+Chicken soft taco, Taco Bell|160|12|16|5|1|99|1 taco
+Steak soft taco, Taco Bell|170|11|17|6|1|99|1 taco
+Doritos Locos Taco Supreme, Taco Bell|190|8|16|11|2|92|1 taco
+Cheesy Roll Up, Taco Bell|180|9|15|9|1|64|1 item
+Chips and Nacho Cheese, Taco Bell|220|3|25|12|1|99|1 order
+Nachos Supreme, Taco Bell|440|13|43|24|4|198|1 order
+Beefy 5-Layer Burrito, Taco Bell|490|18|64|18|4|248|1 burrito
+Bean and Cheese Burrito, Taco Bell|380|13|55|11|3|198|1 burrito
+Chicken Burrito Supreme, Taco Bell|370|19|50|11|4|248|1 burrito
+Quesarito, beef Taco Bell|650|21|75|29|5|280|1 item
+Grilled Cheese Burrito, Taco Bell|710|26|78|33|5|301|1 burrito
+Chicken Chalupa Supreme, Taco Bell|330|16|30|17|3|153|1 chalupa
+Beef Chalupa Supreme, Taco Bell|350|13|31|20|3|153|1 chalupa
+Mexican Pizza, Taco Bell|530|19|48|30|4|213|1 pizza
+Power Menu Bowl chicken, Taco Bell|470|26|50|19|4|445|1 bowl
+Veggie Power Bowl, Taco Bell|430|12|56|17|5|445|1 bowl
+Nacho Fries, Taco Bell|320|4|35|18|1|113|1 order
+Cinnabon Delights 2 pack, Taco Bell|160|2|17|9|8|46|2 pieces
+Cheesy Fiesta Potatoes, Taco Bell|230|4|27|12|1|142|1 order
+Black Beans and Rice, Taco Bell|170|5|28|4|1|128|1 order
+Breakfast Crunchwrap sausage, Taco Bell|670|19|52|43|3|292|1 item
+Cheesy Toasted Breakfast Burrito, Taco Bell|340|11|33|18|2|128|1 burrito
+Big Mary, Mary Browns|620|32|52|31|8|260|1 sandwich
+Big Mary Spicy, Mary Browns|640|32|53|33|8|265|1 sandwich
+Chicken sandwich classic, Mary Browns|520|28|48|24|7|230|1 sandwich
+Chicken sandwich crispy, Mary Browns|560|29|50|27|7|240|1 sandwich
+Chicken breast, Mary Browns|330|33|13|16|0|150|1 piece
+Chicken thigh, Mary Browns|270|18|10|17|0|110|1 piece
+Chicken drumstick, Mary Browns|160|13|6|9|0|70|1 piece
+Chicken wing, Mary Browns|130|10|5|8|0|55|1 piece
+Chicken 2 piece dinner, Mary Browns|760|40|62|38|4|400|1 dinner
+Chicken 3 piece dinner, Mary Browns|990|53|68|54|4|480|1 dinner
+Chicken tenders 3 piece, Mary Browns|330|26|20|17|0|140|3 tenders
+Chicken tenders 5 piece, Mary Browns|550|43|33|28|0|230|5 tenders
+Taters regular, Mary Browns|300|4|42|13|1|130|regular
+Taters large, Mary Browns|450|6|63|20|2|195|large
+Poutine regular, Mary Browns|690|20|64|39|3|340|regular
+Poutine large, Mary Browns|960|28|89|54|4|470|large
+Coleslaw, Mary Browns|150|1|18|8|14|110|1 side
+Gravy, Mary Browns|60|1|9|2|1|100|1 side
+Caesar salad, Mary Browns|280|8|14|21|3|180|1 salad
+Chicken Caesar wrap, Mary Browns|560|30|48|28|3|260|1 wrap
+Homestyle bun, Mary Browns|180|5|33|3|3|60|1 bun
+McCrispy Deluxe, McDonalds|530|27|50|24|9|241|1 sandwich
+McSpicy, McDonalds|500|26|48|23|8|226|1 sandwich
+Double Big Mac, McDonalds|760|43|46|46|9|298|1 burger
+Triple Cheeseburger, McDonalds|590|35|36|32|8|228|1 burger
+McDouble, McDonalds|400|22|33|20|7|151|1 burger
+Grand Big Mac, McDonalds|740|39|47|43|10|290|1 burger
+Chicken McNuggets 4 piece, McDonalds|170|10|10|10|0|69|4 pieces
+Sweet and sour sauce, McDonalds|50|0|12|0|10|28|1 packet
+BBQ sauce, McDonalds|45|0|11|0|10|28|1 packet
+Sweet chili sauce, McDonalds|60|0|14|0|12|28|1 packet
+Ranch sauce, McDonalds|110|0|2|11|1|28|1 packet
+Hotcakes and sausage, McDonalds|780|21|104|32|45|280|1 platter
+Sausage Burrito, McDonalds|310|13|26|17|2|116|1 burrito
+McGriddles sausage egg cheese, McDonalds|550|20|48|31|15|175|1 sandwich
+Fruit and maple oatmeal, McDonalds|320|6|64|5|31|251|1 bowl
+Egg White Delight McMuffin, McDonalds|270|18|30|8|3|150|1 muffin
+Cheeseburger Happy Meal, McDonalds|475|20|58|18|20|300|1 meal
+McFlurry M and Ms, McDonalds|560|13|84|20|66|285|regular
+Strawberry sundae, McDonalds|280|6|50|7|43|179|1 sundae
+Baked apple pie 2 pack, McDonalds|500|4|64|26|26|154|2 pies
+Cinnamon melts, McDonalds|460|6|66|19|32|114|1 order
+Iced tea large, McDonalds|0|0|0|0|0|650|large
+Frozen Coke medium, McDonalds|230|0|60|0|60|450|medium
+Smoothie mango pineapple medium, McDonalds|250|3|56|1|53|420|medium
+Hot chocolate medium, McDonalds|370|11|58|11|50|475|medium
+Americano medium, McDonalds|10|1|2|0|0|475|medium
+Coca-Cola, can|140|0|39|0|39|355|1 can
+Coca-Cola, bottle 500ml|210|0|58|0|58|500|1 bottle
+Coca-Cola Zero Sugar, can|0|0|0|0|0|355|1 can
+Diet Coke, can|0|0|0|0|0|355|1 can
+Coca-Cola Cherry, can|150|0|42|0|42|355|1 can
+Coca-Cola Vanilla, can|150|0|42|0|42|355|1 can
+Pepsi, can|150|0|41|0|41|355|1 can
+Pepsi Zero Sugar, can|0|0|0|0|0|355|1 can
+Diet Pepsi, can|0|0|0|0|0|355|1 can
+Sprite, can|140|0|38|0|38|355|1 can
+Sprite Zero, can|0|0|0|0|0|355|1 can
+7 Up, can|140|0|39|0|39|355|1 can
+Canada Dry Ginger Ale, can|140|0|36|0|36|355|1 can
+Canada Dry Diet Ginger Ale, can|0|0|0|0|0|355|1 can
+Schweppes Tonic Water, can|130|0|33|0|32|355|1 can
+Club soda, can|0|0|0|0|0|355|1 can
+Fanta Orange, can|160|0|44|0|44|355|1 can
+Crush Orange, can|180|0|49|0|49|355|1 can
+Mountain Dew, can|170|0|46|0|46|355|1 can
+Dr Pepper soda, can|150|0|40|0|40|355|1 can
+Root beer, A and W can|180|0|46|0|46|355|1 can
+Barqs Root Beer, can|160|0|45|0|45|355|1 can
+Cream soda, can|170|0|46|0|46|355|1 can
+Brio, can|160|0|43|0|43|355|1 can
+San Pellegrino Limonata, can|140|0|34|0|33|330|1 can
+San Pellegrino Aranciata, can|150|0|36|0|35|330|1 can
+Sparkling water, flavoured unsweetened|0|0|0|0|0|355|1 can
+Perrier, bottle|0|0|0|0|0|330|1 bottle
+Bubly, can|0|0|0|0|0|355|1 can
+Gatorade Thirst Quencher, 591ml|140|0|36|0|34|591|1 bottle
+Gatorade Thirst Quencher, 710ml|170|0|44|0|42|710|1 bottle
+Gatorade Zero, 591ml|10|0|3|0|0|591|1 bottle
+Gatorade Endurance Formula, 591ml|140|0|36|0|32|591|1 bottle
+Gatorade Protein Shake|270|20|45|1|38|330|1 bottle
+Gatorlyte, 591ml|80|0|20|0|18|591|1 bottle
+Powerade, 591ml|130|0|35|0|34|591|1 bottle
+Powerade Zero, 591ml|0|0|0|0|0|591|1 bottle
+BodyArmor, 473ml|120|0|31|0|29|473|1 bottle
+BodyArmor Lyte, 473ml|20|0|5|0|2|473|1 bottle
+Electrolit, 600ml|100|0|25|0|23|600|1 bottle
+Liquid IV packet, mixed|45|0|11|0|11|16|1 packet
+LMNT electrolyte packet|10|0|2|0|0|6|1 packet
+Nuun tablet, mixed|15|0|4|0|1|500|1 tablet
+Pedialyte, 500ml|50|0|13|0|10|500|1 bottle
+Coconut water, 330ml carton|60|2|13|0|11|330|1 carton
+Red Bull, 250ml|110|1|28|0|27|250|1 can
+Red Bull Sugarfree, 250ml|5|1|1|0|0|250|1 can
+Red Bull, 355ml|160|1|39|0|38|355|1 can
+Monster Energy, 473ml|210|0|54|0|54|473|1 can
+Monster Ultra Zero, 473ml|10|0|4|0|0|473|1 can
+Monster Java, 443ml|200|8|30|5|26|443|1 can
+Rockstar Energy, 473ml|250|0|63|0|62|473|1 can
+Celsius, 355ml|10|0|2|0|0|355|1 can
+Celsius Essentials, 473ml|10|0|2|0|0|473|1 can
+Alani Nu Energy, 355ml|10|0|2|0|0|355|1 can
+Ghost Energy, 473ml|5|0|1|0|0|473|1 can
+Bang Energy, 473ml|0|0|0|0|0|473|1 can
+Reign Total Body Fuel, 473ml|10|0|4|0|0|473|1 can
+C4 Energy, 473ml|0|0|0|0|0|473|1 can
+Prime Energy, 355ml|10|0|2|0|0|355|1 can
+Prime Hydration, 500ml|20|0|5|0|2|500|1 bottle
+Guru Organic Energy, 355ml|140|0|34|0|33|355|1 can
+5-hour Energy shot|4|0|0|0|0|57|1 shot
+Orange juice, not from concentrate 250ml|110|2|26|0|21|250|1 glass
+Apple juice, 250ml|115|0|28|0|25|250|1 glass
+Cranberry juice cocktail, 250ml|120|0|31|0|30|250|1 glass
+Grapefruit juice, 250ml|95|1|22|0|21|250|1 glass
+Pineapple juice, 250ml|130|1|32|0|25|250|1 glass
+Grape juice, 250ml|150|1|37|0|36|250|1 glass
+Tomato juice, 250ml|45|2|10|0|8|250|1 glass
+V8 vegetable juice, 250ml|50|2|10|0|8|250|1 glass
+Carrot juice, 250ml|95|2|22|0|9|250|1 glass
+Beet juice, 250ml|110|2|25|0|20|250|1 glass
+Lemonade, 250ml|105|0|27|0|26|250|1 glass
+Limeade, 250ml|100|0|26|0|25|250|1 glass
+Orange juice, freshly squeezed 250ml|112|2|26|0|21|250|1 glass
+Green juice, cold pressed 355ml|120|4|26|0|18|355|1 bottle
+Smoothie, berry 355ml|220|4|48|2|38|355|1 bottle
+Smoothie, mango 355ml|250|3|58|1|48|355|1 bottle
+Smoothie, protein 355ml|320|25|38|6|28|355|1 bottle
+Naked Green Machine, 450ml|270|5|63|0|53|450|1 bottle
+Tropicana Orange, 340ml|150|2|35|0|29|340|1 bottle
+Iced tea, unsweetened|2|0|0|0|0|355|1 glass
+Iced tea, lemon sweetened can|120|0|32|0|32|355|1 can
+Nestea, can|130|0|34|0|33|355|1 can
+Arizona Green Tea, 680ml|140|0|36|0|34|680|1 can
+Snapple Peach Tea, 473ml|160|0|41|0|40|473|1 bottle
+Black tea, plain|2|0|0|0|0|240|1 cup
+Black tea with milk|30|1|3|1|3|250|1 cup
+Earl Grey with milk and sugar|60|1|10|1|9|250|1 cup
+Green tea, matcha whisked|5|1|1|0|0|240|1 cup
+Herbal tea, peppermint|2|0|0|0|0|240|1 cup
+Chai, brewed with milk|120|4|20|3|18|250|1 cup
+Bubble tea, milk tea with tapioca|350|4|65|8|45|500|1 cup
+Bubble tea, fruit tea|250|0|62|0|55|500|1 cup
+Espresso, single|3|0|0|0|0|30|1 shot
+Espresso, double|6|0|1|0|0|60|2 shots
+Americano, black|10|1|2|0|0|350|1 cup
+Cappuccino, whole milk|110|6|9|6|9|180|1 cup
+Latte, whole milk|190|10|15|10|14|350|1 cup
+Latte, skim milk|130|13|19|0|18|350|1 cup
+Latte, oat milk|200|4|26|8|16|350|1 cup
+Flat white, whole milk|160|9|12|9|11|240|1 cup
+Cortado|80|4|6|4|6|120|1 cup
+Macchiato|15|1|1|1|1|60|1 cup
+Mocha, whole milk|290|10|33|13|29|350|1 cup
+Cold brew, black|5|0|0|0|0|350|1 cup
+Cold brew with milk|70|4|6|4|5|350|1 cup
+Nitro cold brew, black|10|0|1|0|0|350|1 cup
+Instant coffee, black|4|0|0|0|0|240|1 cup
+Coffee with cream and sugar|75|1|10|4|9|250|1 cup
+Beer, IPA|210|2|17|0|0|355|1 can
+Beer, stout|190|2|18|0|0|355|1 can
+Beer, lager|150|2|13|0|0|355|1 can
+Beer, pilsner|150|2|12|0|0|355|1 can
+Beer, wheat|170|2|16|0|1|355|1 can
+Beer, non-alcoholic|60|1|13|0|5|355|1 can
+Cider, dry|180|0|20|0|18|355|1 can
+Cider, sweet|210|0|28|0|26|355|1 can
+Hard seltzer|100|0|2|0|2|355|1 can
+White Claw|100|0|2|0|2|355|1 can
+Wine, rose|125|0|4|0|1|148|5 oz
+Wine, sparkling brut|95|0|2|0|1|148|5 oz
+Prosecco|120|0|3|0|2|148|5 oz
+Wine, dessert|165|0|12|0|8|89|3 oz
+Port|100|0|7|0|5|60|2 oz
+Whisky, single|97|0|0|0|0|44|1.5 oz
+Vodka soda|100|0|0|0|0|250|1 drink
+Rum and Coke|185|0|18|0|18|250|1 drink
+Gin and soda|100|0|0|0|0|250|1 drink
+Tequila, shot|97|0|0|0|0|44|1.5 oz
+Margarita|280|0|36|0|34|200|1 drink
+Mojito|220|0|24|0|22|240|1 drink
+Old Fashioned|155|0|4|0|4|90|1 drink
+Negroni|210|0|13|0|11|90|1 drink
+Aperol Spritz|180|0|20|0|18|200|1 drink
+Martini|175|0|1|0|0|90|1 drink
+Bloody Mary|125|1|10|0|6|250|1 drink
+Pina Colada|380|1|50|8|45|240|1 drink
+Baileys|130|1|10|6|9|50|1.5 oz
+Kombucha, 355ml|60|0|14|0|12|355|1 bottle
+Kefir water|40|0|9|0|8|240|1 cup
+Protein shake, whey with water|130|25|4|2|2|350|1 shake
+Protein shake, whey with milk|280|33|16|9|14|350|1 shake
+Fairlife Core Power 26g|170|26|9|4|6|414|1 bottle
+Premier Protein shake|160|30|5|3|1|325|1 bottle
+Boost High Protein|240|15|33|6|21|237|1 bottle
+Ensure Original|220|9|32|6|15|237|1 bottle
+Meal replacement shake, generic|250|20|30|5|12|350|1 shake
+Creatine in water|0|0|0|0|0|300|1 serving
+Pre-workout, mixed|15|0|3|0|0|350|1 serving
+BCAA drink, mixed|10|1|1|0|0|500|1 serving
+Greens powder, mixed|40|2|6|0|1|300|1 serving
+Milkshake, vanilla|350|9|56|11|50|350|1 shake
+Milkshake, strawberry|360|9|58|11|52|350|1 shake
+Slush drink, 500ml|180|0|46|0|46|500|1 cup
+Horchata|220|4|32|8|26|250|1 glass
+Chocolate milk, 250ml|160|8|26|3|24|250|1 glass
+Eggnog|225|6|22|11|21|250|1 glass
+Hot chocolate, whole milk|230|9|28|9|25|250|1 cup
+Apple cider, hot|120|0|30|0|27|250|1 cup
+Water|0|0|0|0|0|500|500 ml
+Mineral water|0|0|0|0|0|500|500 ml
+Vodka, 1 oz|64|0|0|0|0|28|1 oz
+Gin, 1 oz|64|0|0|0|0|28|1 oz
+White rum, 1 oz|64|0|0|0|0|28|1 oz
+Dark rum, 1 oz|64|0|0|0|0|28|1 oz
+Spiced rum, 1 oz|70|0|2|0|2|28|1 oz
+Tequila blanco, 1 oz|64|0|0|0|0|28|1 oz
+Tequila reposado, 1 oz|64|0|0|0|0|28|1 oz
+Mezcal, 1 oz|64|0|0|0|0|28|1 oz
+Bourbon, 1 oz|70|0|0|0|0|28|1 oz
+Rye whisky, 1 oz|70|0|0|0|0|28|1 oz
+Scotch whisky, 1 oz|70|0|0|0|0|28|1 oz
+Irish whiskey, 1 oz|70|0|0|0|0|28|1 oz
+Japanese whisky, 1 oz|70|0|0|0|0|28|1 oz
+Cognac, 1 oz|70|0|0|0|0|28|1 oz
+Brandy, 1 oz|70|0|0|0|0|28|1 oz
+Grappa, 1 oz|70|0|0|0|0|28|1 oz
+Sambuca, 1 oz|103|0|11|0|11|28|1 oz
+Amaretto, 1 oz|92|0|11|0|11|28|1 oz
+Triple sec, 1 oz|84|0|9|0|9|28|1 oz
+Cointreau, 1 oz|97|0|8|0|8|28|1 oz
+Aperol, 1 oz|45|0|6|0|6|28|1 oz
+Campari, 1 oz|64|0|7|0|7|28|1 oz
+Vermouth, sweet 1 oz|45|0|5|0|5|28|1 oz
+Vermouth, dry 1 oz|32|0|1|0|1|28|1 oz
+Kahlua, 1 oz|91|0|13|0|13|28|1 oz
+Baileys Irish Cream, 1 oz|97|1|7|4|7|28|1 oz
+Jagermeister, 1 oz|69|0|8|0|8|28|1 oz
+Absinthe, 1 oz|103|0|0|0|0|28|1 oz
+Everclear, 1 oz|110|0|0|0|0|28|1 oz
+Sake, 1 oz|39|0|1|0|0|28|1 oz
+Soju, 1 oz|38|0|1|0|1|28|1 oz
+Red wine, 1 oz|25|0|1|0|0|29|1 oz
+White wine, 1 oz|24|0|1|0|0|29|1 oz
+Rose wine, 1 oz|25|0|1|0|0|29|1 oz
+Sparkling wine, 1 oz|19|0|0|0|0|29|1 oz
+Port wine, 1 oz|50|0|4|0|3|29|1 oz
+Sherry, 1 oz|38|0|2|0|1|29|1 oz
+Beer, 1 oz|13|0|1|0|0|30|1 oz
+Beer, pint 16 oz|206|2|17|0|0|473|1 pint
+Beer, IPA pint 16 oz|280|3|23|0|0|473|1 pint
+Beer, stout pint 16 oz|253|3|24|0|0|473|1 pint
+Beer, bottle 341ml|145|1|11|0|0|341|1 bottle
+Corona, bottle|148|1|14|0|0|355|1 bottle
+Heineken, bottle|142|2|11|0|0|330|1 bottle
+Guinness Draught, can|125|1|10|0|0|440|1 can
+Stella Artois, bottle|154|2|12|0|0|330|1 bottle
+Budweiser, can|145|1|11|0|0|355|1 can
+Bud Light, can|110|1|7|0|0|355|1 can
+Coors Light, can|102|1|5|0|0|355|1 can
+Michelob Ultra, can|95|1|3|0|0|355|1 can
+Molson Canadian, can|145|1|11|0|0|355|1 can
+Labatt Blue, can|142|1|11|0|0|355|1 can
+Alexander Keiths, bottle|150|2|12|0|0|341|1 bottle
+Somersby cider, can|190|0|24|0|22|355|1 can
+Strongbow cider, can|180|0|22|0|20|355|1 can
+Angry Orchard cider, bottle|190|0|24|0|22|355|1 bottle
+Truly hard seltzer, can|100|0|2|0|1|355|1 can
+Nutrl vodka soda, can|100|0|0|0|0|355|1 can
+Cutwater canned cocktail|160|0|10|0|9|355|1 can
+Coca-Cola Zero Sugar, bottle 500ml|0|0|0|0|0|500|1 bottle
+Coke Zero, can|0|0|0|0|0|355|1 can
+Coca-Cola, 2L per 250ml|105|0|28|0|28|250|250 ml
+Coca-Cola Cherry Zero, can|0|0|0|0|0|355|1 can
+Pepsi Max, can|0|0|0|0|0|355|1 can
+Wild Cherry Pepsi, can|160|0|42|0|42|355|1 can
+Diet Dr Pepper soda, can|0|0|0|0|0|355|1 can
+Dr Pepper Zero soda, can|0|0|0|0|0|355|1 can
+Mountain Dew Zero, can|0|0|0|0|0|355|1 can
+Mountain Dew Code Red, can|170|0|46|0|46|355|1 can
+Fanta Grape, can|160|0|44|0|44|355|1 can
+Fresca, can|0|0|0|0|0|355|1 can
+Ginger beer, can|130|0|33|0|32|355|1 can
+Canada Dry Club Soda, can|0|0|0|0|0|355|1 can
+Sprite Cranberry, can|140|0|38|0|38|355|1 can
+Nestea Zero, can|0|0|0|0|0|355|1 can
+Polar seltzer, can|0|0|0|0|0|355|1 can
+LaCroix, can|0|0|0|0|0|355|1 can
+Topo Chico, bottle|0|0|0|0|0|355|1 bottle
+Gatorade Cool Blue, 591ml|140|0|36|0|34|591|1 bottle
+Gatorade Fruit Punch, 591ml|140|0|36|0|34|591|1 bottle
+Gatorade Lemon Lime, 591ml|140|0|36|0|34|591|1 bottle
+Gatorade Orange, 591ml|140|0|36|0|34|591|1 bottle
+Gatorade Glacier Freeze, 591ml|140|0|36|0|34|591|1 bottle
+Gatorade powder, 1 scoop|80|0|21|0|20|22|1 scoop
+Gatorade Fit, 473ml|10|0|3|0|1|473|1 bottle
+Powerade Mountain Berry, 591ml|130|0|35|0|34|591|1 bottle
+BioSteel Sports Drink, 500ml|0|0|0|0|0|500|1 bottle
+Vitaminwater, 591ml|120|0|32|0|31|591|1 bottle
+Vitaminwater Zero, 591ml|0|0|0|0|0|591|1 bottle
+Propel, 591ml|0|0|0|0|0|591|1 bottle
+Skratch Labs hydration, mixed|80|0|21|0|19|22|1 scoop
+Maurten 320 drink mix|320|0|79|0|0|83|1 sachet
+SiS GO Electrolyte, mixed|140|0|36|0|9|40|1 scoop
+Monster Mango Loco, 473ml|230|0|57|0|54|473|1 can
+Monster Zero Ultra, 473ml|10|0|4|0|0|473|1 can
+Monster Ultra Paradise, 473ml|10|0|4|0|0|473|1 can
+Monster Ultra Sunrise, 473ml|10|0|4|0|0|473|1 can
+Monster Rehab, 458ml|25|0|6|0|4|458|1 can
+Red Bull Red Edition, 250ml|115|1|28|0|27|250|1 can
+Red Bull Tropical, 250ml|115|1|28|0|27|250|1 can
+Red Bull Zero, 250ml|5|0|1|0|0|250|1 can
+Rockstar Pure Zero, 473ml|20|0|5|0|0|473|1 can
+Celsius Sparkling Orange, 355ml|10|0|2|0|0|355|1 can
+Celsius Live Fit, 355ml|10|0|2|0|0|355|1 can
+Alani Nu Cosmic Stardust, 355ml|10|0|2|0|0|355|1 can
+Alani Nu Witchs Brew, 355ml|10|0|2|0|0|355|1 can
+Ghost Sour Patch Kids, 473ml|5|0|1|0|0|473|1 can
+Bang Blue Razz, 473ml|0|0|0|0|0|473|1 can
+Zoa Energy, 473ml|15|0|3|0|0|473|1 can
+NOS Energy, 473ml|210|0|54|0|54|473|1 can
+Full Throttle, 473ml|220|0|58|0|58|473|1 can
+Guayaki Yerba Mate, 458ml|140|0|34|0|32|458|1 can
+Clif Shot energy gel|100|0|24|0|11|34|1 gel
+GU energy gel|100|0|22|0|5|32|1 gel
+Simply Orange, 340ml|150|2|33|0|29|340|1 bottle
+Minute Maid Orange, 355ml|160|2|39|0|36|355|1 box
+Oasis Orange, 300ml|130|2|31|0|28|300|1 box
+Ocean Spray Cranberry, 355ml|170|0|44|0|42|355|1 bottle
+Welchs Grape, 355ml|210|1|52|0|50|355|1 bottle
+Dole Pineapple, 355ml|190|1|46|0|38|355|1 bottle
+Naked Blue Machine, 450ml|320|4|72|0|60|450|1 bottle
+Bolthouse Farms Green Goodness, 450ml|280|5|64|0|54|450|1 bottle
+Tropicana Apple, 340ml|160|0|38|0|34|340|1 bottle`;
 
 /* Nutrition targets — set by the user, blank until then */
 let TGT=(()=>{try{const r=localStorage.getItem("vTargets_v1"); if(r) return JSON.parse(r);}catch(e){}
