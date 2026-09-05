@@ -2043,7 +2043,14 @@ function load(){
   o.sleep=Array.isArray(o.sleep)?o.sleep.filter(s=>s&&s.date&&isFinite(s.hrs)&&s.hrs>0&&s.hrs<=16):[];
   o.weight=Array.isArray(o.weight)?o.weight.filter(w=>w&&w.date&&isFinite(w.lb)&&w.lb>=80&&w.lb<=400):[];
   o.food=Array.isArray(o.food)?o.food.filter(f=>f&&f.date&&typeof f.n==="string"&&isFinite(f.kcal)):[];
-  o.customFoods=Array.isArray(o.customFoods)?o.customFoods.filter(f=>f&&typeof f.n==="string"&&isFinite(f.kcal)):[];
+  /* sg must be a positive number or the per-100 maths yields NaN and a silent
+     zero-calorie row. Older custom foods predate the package feature and have
+     no sg/pk, so both are defaulted rather than rejected. */
+  o.customFoods=Array.isArray(o.customFoods)?o.customFoods.filter(f=>f&&typeof f.n==="string"&&isFinite(f.kcal))
+    .map(f=>{ f.sg=(isFinite(f.sg)&&f.sg>0)?f.sg:100;
+              ["p","c","f","s"].forEach(k=>{ if(!isFinite(f[k])) f[k]=0; });
+              f.sl=typeof f.sl==="string"&&f.sl?f.sl:"1 serving";
+              f.pk=(isFinite(f.pk)&&f.pk>0)?f.pk:null; return f; }):[];
   o._del=Array.isArray(o._del)?o._del.filter(x=>typeof x==="string"):[];
   o._wipe=isFinite(o._wipe)?o._wipe:0;
   return o;
@@ -2808,6 +2815,7 @@ function foodV(){
      <div class="row"><button class="clr" id="fsayc">Clear</button><button class="go2" id="fsayg">Read it</button></div>
      <div id="fconf"></div>
    </div>
+   ${pkgPanel()}
    <input class="srch" id="fq" placeholder="Search — chicken, oats, latte…" autocomplete="off">
    <div id="fres"></div>
    <div class="say" style="margin-top:10px">
@@ -2831,6 +2839,7 @@ function foodV(){
    <div class="note">${TGT.kcal?`Targets: ${TGT.kcal} kcal · ${TGT.p}g protein · ${TGT.c}g carbs · ${TGT.f}g fat. `:""}Values come from a food database, not from measuring your plate — treat them as directional, roughly ±15%.</div></div>`;}
 
 function wireFood(){
+  wirePkg();
   const q=document.getElementById("fq"), res=document.getElementById("fres");
   const custom=DB.customFoods||[];
   const draw=()=>{
@@ -2926,6 +2935,249 @@ function wireFoodSay(){
       save(); render(); toast(n+" item"+(n>1?"s":"")+" logged");};
   };
 }
+/* parsePanel — reads OCR'd nutrition-panel text into per-serving macros.
+   Returns {kcal,p,c,f,s,sg,pk,sl,warn[]}; every field may be null. The caller
+   MUST show the result for confirmation — this is OCR, it will be wrong. */
+function parsePanel(raw){
+  const out={kcal:null,p:null,c:null,f:null,s:null,sg:null,pk:null,sl:null,warn:[]};
+  if(!raw||!raw.trim()) return out;
+
+  const lines=String(raw).replace(/\u00a0/g," ")
+    .split(/[\n\r]+/).map(l=>l.trim()).filter(Boolean);
+
+  /* a number, tolerating OCR commas as decimal points and stray spaces:
+     "21 g" "0,5g" "1 . 5" "< 1" */
+  const NUM=/(?:<\s*)?(\d+(?:\s*[.,]\s*\d+)?)/;
+  const val=s=>{const m=String(s).match(NUM); if(!m) return null;
+    const v=parseFloat(m[1].replace(/\s/g,"").replace(",",".")); return isFinite(v)?v:null;};
+
+  /* lines that name a SUB-component and must never satisfy fat/carb/sugar */
+  const SUB=/saturat|trans|monounsat|polyunsat|fibre|fiber|added|cholesterol|sodium|salt|potassium|calcium|iron|vitamin|omega|starch|polyol/i;
+
+  for(const line of lines){
+    const L=line.toLowerCase();
+    /* strip the %DV column before reading a value, or "Fat 21 g 32 %" can
+       yield 32 when the g figure is missing on an OCR misread */
+    const body=line.replace(/\d+\s*%.*$/,"");
+
+    if(out.kcal===null && /calorie|energy|\bkcal\b/.test(L)){
+      /* "1050 kJ / 250 kcal" — take the kcal figure, not the kJ one */
+      const kc=body.match(/(\d[\d\s.,]*)\s*k\s*cal/i);
+      if(kc) out.kcal=val(kc[1]);
+      else if(!/kj/i.test(body)) out.kcal=val(body.replace(/calories?|energy/i,""));
+      else { const kj=val(body); if(kj!=null){ out.kcal=Math.round(kj/4.184);
+             out.warn.push("Calories converted from kJ — check it."); } }
+    }
+    if(out.p===null && /protein|protéines/.test(L) && !SUB.test(L)) out.p=val(body.replace(/protein|protéines/i,""));
+    if(out.f===null && /\bfat\b|lipides|matières grasses/.test(L) && !SUB.test(L)) out.f=val(body.replace(/total|fat|lipides|matières grasses/ig,""));
+    if(out.c===null && /carbohydrate|carbs|glucides/.test(L) && !SUB.test(L)) out.c=val(body.replace(/total|carbohydrates?|carbs|glucides/ig,""));
+    if(out.s===null && /sugar|sucres/.test(L) && !/added|ajout/.test(L)) out.s=val(body.replace(/total|sugars?|sucres/ig,""));
+
+    /* servings per pack: "Servings Per Container about 5" / "5 servings per package" */
+    if(out.pk===null){
+      let m=L.match(/servings?\s*(?:per|\/)\s*(?:container|package|pack|bag|box)\D*(\d+(?:\.\d+)?)/)
+          || L.match(/(\d+(?:\.\d+)?)\s*servings?\s*(?:per|\/)\s*(?:container|package|pack)/)
+          || L.match(/(?:contains|makes)\D*(\d+(?:\.\d+)?)\s*servings?/);
+      if(m) out.pk=parseFloat(m[1]);
+    }
+
+    /* serving size: grams in parentheses win — "Per 2 sausages (75 g)" */
+    if(out.sg===null && /serving size|portion|per\b|par\b|pour\b/.test(L)){
+      const par=body.match(/\((\s*\d+(?:[.,]\d+)?\s*)(g|ml)\s*\)/i);
+      if(par) out.sg=val(par[1]);
+      else { const g=body.match(/(\d+(?:[.,]\d+)?)\s*(?:g|ml)\b/i); if(g) out.sg=val(g[1]); }
+      const lbl=line.replace(/^\s*(serving size|per|portion)\s*:?\s*/i,"").trim();
+      if(lbl && !out.sl) out.sl=lbl.slice(0,40);
+    }
+  }
+
+  /* A panel headed "per 100 g" is not a serving — flag it, do not silently
+     treat 100 g as one serving. This is the per-serving/per-100g confusion
+     that inflated ~1,000 library entries; it must surface, not resolve. */
+  if(/per\s*100\s*(g|ml)/i.test(raw)){
+    out.per100=true;
+    out.warn.push("This panel reads per 100 g, not per serving. Enter the serving size yourself.");
+  }
+  if(out.kcal===null) out.warn.push("No calorie line found.");
+  if(out.p===null&&out.c===null&&out.f===null) out.warn.push("No macros found — check the paste.");
+  /* Atwater cross-check: 4/4/9 should land near the stated calories */
+  if(out.kcal&&(out.p!=null||out.c!=null||out.f!=null)){
+    const est=(out.p||0)*4+(out.c||0)*4+(out.f||0)*9;
+    if(est>0 && Math.abs(est-out.kcal)/out.kcal>0.30)
+      out.warn.push(`Macros imply ~${Math.round(est)} kcal but the panel says ${out.kcal}. One of them is misread.`);
+  }
+  return out;
+}
+
+/* ---------- PACKAGE / LABEL (vlog-v2-16) ----------
+   Photograph a nutrition panel, OCR it with the phone (Lens / Live Text), paste
+   the text, then say how much of the pack was eaten. Portion can be given as
+   servings, a fraction of the pack, or grams.
+
+   SCHEMA NOTE, and it is the whole reason this needs care: the food library is
+   PER 100 g and the app computes kcal*sg/100. A nutrition panel is PER SERVING.
+   Storing panel numbers directly is exactly the bug that inflated ~1,000 entries
+   2-3x. So macros are converted to per-100 on save, and the confirm step shows
+   the FINAL computed numbers for the portion being logged - not the panel. */
+let PKG=null;
+const pkgBlank=()=>({name:"",kcal:null,p:null,c:null,f:null,s:null,
+  sg:null,pk:null,sl:"",mode:"srv",amt:1,warn:[]});
+
+/* per-serving -> per-100 units, so pick()/log maths stays untouched.
+   When the serving weight is unknown we store sg=100 and treat one serving as
+   100 nominal units; 1 serving then computes back to exactly the panel figures. */
+function pkgRecord(P){
+  const sg=(P.sg&&P.sg>0)?P.sg:100, k=100/sg;
+  return {n:P.name.trim(), kcal:(P.kcal||0)*k, p:(P.p||0)*k, c:(P.c||0)*k,
+          f:(P.f||0)*k, s:(P.s||0)*k, sg:sg,
+          sl:P.sl&&P.sl.trim()?P.sl.trim():"1 serving",
+          pk:(P.pk&&P.pk>0)?P.pk:null};
+}
+/* how many SERVINGS the chosen portion equals */
+function pkgServings(P){
+  const a=+P.amt; if(!isFinite(a)||a<=0) return null;
+  if(P.mode==="srv") return a;
+  if(P.mode==="pack") return (P.pk&&P.pk>0)?a*P.pk:null;
+  if(P.mode==="g")    return (P.sg&&P.sg>0)?a/P.sg:null;
+  return null;
+}
+function pkgTotals(P){
+  const n=pkgServings(P); if(n===null) return null;
+  return {n:n, kcal:(P.kcal||0)*n, p:(P.p||0)*n, c:(P.c||0)*n, f:(P.f||0)*n, s:(P.s||0)*n};
+}
+
+function pkgPanel(){
+  const P=PKG, has=!!P;
+  const T=has?pkgTotals(P):null;
+  const v=x=>(x===null||x===undefined)?"":x;
+  const warn=(has&&P.warn.length)?`<div class="hintl" style="color:var(--hot);margin:8px 0 0">${P.warn.map(esc).join("<br>")}</div>`:"";
+  const modeBtn=(m,l,ok)=>`<button class="fbtn pkm${P&&P.mode===m?" on":""}" data-pkm="${m}"${ok?"":" disabled"}>${l}</button>`;
+  const unit=has?(P.mode==="srv"?(P.sl||"servings").replace(/^1\s+/,""):P.mode==="pack"?"of the pack":"grams"):"";
+  return `<div class="imp" id="pkg">
+    <div class="ih" id="pkgh"><b>Add a package or a label</b><span>›</span></div>
+    <div class="ib">
+      <textarea id="pkgt" placeholder="Paste the nutrition panel text here"></textarea>
+      <div class="btns"><button class="fbtn" id="pkgrun">Read the label</button><button class="fbtn" id="pkgstart">Fill it in by hand</button></div>
+      <div class="fmt"><b>Photograph the panel, let your phone read it, paste it here.</b><br><br>
+        <b>iPhone:</b> take the photo, open it in Photos, tap the <b>Live Text</b> icon (the little
+        square with lines) at the bottom right, tap <b>Select All</b>, then <b>Copy</b>. Or open the
+        Google app, tap the camera, point it at the panel, then Select all → Copy.<br>
+        <b>Android:</b> take the photo, open it in Google Photos, tap <b>Lens</b>, then
+        <b>Text</b>, then Select all → Copy. Google Lens can also read straight from the camera
+        without taking a photo at all.<br><br>
+        Then long-press the box above and Paste. Nothing is saved until you confirm the numbers.
+        You can also skip all of this and type the figures in yourself.</div>
+      ${has?`
+      <div class="hintl" style="margin:14px 0 6px;color:#fff;font-weight:700">Check these against the label</div>
+      <div class="srow" style="border-bottom:0;padding:0">
+        <div class="fg" style="flex:2"><span class="fl">Name</span>
+          <input class="n" id="pgn" style="font-family:var(--sans);font-size:15px;text-align:left;padding-left:11px"
+            placeholder="e.g. Johnsonville sausages" value="${esc(P.name)}"></div>
+      </div>
+      <div class="hintl" style="margin:10px 0 4px">Per serving, as printed on the label</div>
+      <div class="srow" style="border-bottom:0;padding:0">
+        <div class="fg"><span class="fl">Calories</span><input class="n pgf" id="pgk" data-k="kcal" inputmode="decimal" value="${v(P.kcal)}"></div>
+        <div class="fg"><span class="fl">Protein g</span><input class="n pgf" id="pgp" data-k="p" inputmode="decimal" value="${v(P.p)}"></div>
+        <div class="fg"><span class="fl">Carbs g</span><input class="n pgf" id="pgc" data-k="c" inputmode="decimal" value="${v(P.c)}"></div>
+      </div>
+      <div class="srow" style="border-bottom:0;padding:6px 0 0">
+        <div class="fg"><span class="fl">Fat g</span><input class="n pgf" id="pgf" data-k="f" inputmode="decimal" value="${v(P.f)}"></div>
+        <div class="fg"><span class="fl">Sugar g</span><input class="n pgf" id="pgs" data-k="s" inputmode="decimal" value="${v(P.s)}"></div>
+        <div class="fg"><span class="fl">Serving g</span><input class="n pgf" id="pgsg" data-k="sg" inputmode="decimal" placeholder="—" value="${v(P.sg)}"></div>
+      </div>
+      <div class="srow" style="border-bottom:0;padding:6px 0 0">
+        <div class="fg" style="flex:1.4"><span class="fl">Serving is called</span>
+          <input class="n pgf" id="pgsl" data-k="sl" style="font-family:var(--sans);font-size:14px;text-align:left;padding-left:11px"
+            placeholder="2 sausages" value="${esc(P.sl||"")}"></div>
+        <div class="fg"><span class="fl">Servings in pack</span><input class="n pgf" id="pgpk" data-k="pk" inputmode="decimal" placeholder="—" value="${v(P.pk)}"></div>
+      </div>
+      ${warn}
+      <div class="hintl" style="margin:14px 0 6px;color:#fff;font-weight:700">How much did you eat?</div>
+      <div class="btns">${modeBtn("srv","Servings",true)}${modeBtn("pack","Of the pack",!!(P.pk&&P.pk>0))}${modeBtn("g","Grams",!!(P.sg&&P.sg>0))}</div>
+      <div class="srow" style="border-bottom:0;padding:8px 0 0">
+        <div class="fg"><span class="fl">${esc(unit)}</span><input class="n" id="pgamt" inputmode="decimal" value="${v(P.amt)}"></div>
+      </div>
+      <div class="stat" id="pgprev">${pkgPreview(P)}</div>
+      <div class="row" style="margin-top:4px">
+        <button class="clr" id="pgcan">Cancel</button>
+        <button class="go2" id="pgadd"${T?"":" disabled"}>Log it</button></div>
+      `:""}
+    </div></div>`;}
+
+function pkgPreview(P){
+  if(!P) return "";
+  const T=pkgTotals(P);
+  if(!T){ return `<span style="color:var(--hot)">Fill in ${P.mode==="pack"?"servings in pack":P.mode==="g"?"serving grams":"an amount"} to work this out.</span>`; }
+  const nm=P.name.trim()||"this food";
+  const port=P.mode==="srv"?`${+P.amt} × ${(P.sl||"serving").replace(/^1\s+/,"")}`
+    : P.mode==="pack"?`${+P.amt} of the pack (${+(T.n.toFixed(2))} servings)`
+    : `${+P.amt} g (${+(T.n.toFixed(2))} servings)`;
+  return `<b style="color:var(--go)">${esc(nm)} — ${esc(port)}</b><br>
+    <span style="font-size:15px;color:#fff">${Math.round(T.kcal)} kcal</span> ·
+    ${Math.round(T.p)}g protein · ${Math.round(T.c)}g carbs · ${Math.round(T.f)}g fat · ${Math.round(T.s)}g sugar`;
+}
+
+function wirePkg(){
+  const box=document.getElementById("pkg"); if(!box) return;
+  document.getElementById("pkgh").onclick=()=>box.classList.toggle("open");
+  if(PKG) box.classList.add("open");
+
+  const startBtn=document.getElementById("pkgstart");
+  if(startBtn) startBtn.onclick=()=>{PKG=pkgBlank();render();};
+  document.getElementById("pkgrun").onclick=()=>{
+    const txt=document.getElementById("pkgt").value;
+    const r=parsePanel(txt);
+    PKG=PKG||pkgBlank();
+    ["kcal","p","c","f","s","sg","pk"].forEach(k=>{ if(r[k]!==null&&r[k]!==undefined) PKG[k]=r[k]; });
+    if(r.sl) PKG.sl=r.sl;
+    if(r.per100){ PKG.sg=null; }          /* never let a per-100g panel pose as a serving */
+    PKG.warn=r.warn.slice();
+    if(!PKG.name){ /* first non-nutrition line is usually the product name */
+      const first=(txt.split(/[\n\r]+/).map(s=>s.trim()).filter(Boolean)
+        .find(l=>l.length>2&&!/nutrition|valeur|facts|amount|serving|calorie|per\b/i.test(l)));
+      if(first) PKG.name=first.slice(0,40);
+    }
+    render();
+  };
+
+  /* The mode buttons depend on sg and pk, which the user types AFTER the parse.
+     Recompute them here, not only on render(), or "Of the pack" stays greyed
+     out even though the pack count has just been entered. */
+  const upd=()=>{const el=document.getElementById("pgprev"); if(el) el.innerHTML=pkgPreview(PKG);
+    const b=document.getElementById("pgadd"); if(b) b.disabled=!pkgTotals(PKG);
+    const okFor=m=>m==="srv"?true:m==="pack"?!!(PKG.pk&&PKG.pk>0):!!(PKG.sg&&PKG.sg>0);
+    document.querySelectorAll("[data-pkm]").forEach(x=>{
+      const ok=okFor(x.dataset.pkm); x.disabled=!ok;
+      x.classList.toggle("on", PKG.mode===x.dataset.pkm);
+      x.title=ok?"":(x.dataset.pkm==="pack"?"Enter servings in pack first":"Enter serving grams first");});};
+
+  const nm=document.getElementById("pgn"); if(nm) nm.oninput=()=>{PKG.name=nm.value;upd();};
+  document.querySelectorAll(".pgf").forEach(el=>el.oninput=()=>{
+    const k=el.dataset.k;
+    PKG[k]= k==="sl" ? el.value : (el.value.trim()===""?null:parseFloat(el.value.replace(",",".")));
+    if(k==="sg"||k==="pk") upd(); else upd();});
+  const amt=document.getElementById("pgamt"); if(amt) amt.oninput=()=>{PKG.amt=parseFloat(amt.value.replace(",","."));upd();};
+  document.querySelectorAll("[data-pkm]").forEach(b=>b.onclick=()=>{
+    if(b.disabled) return; PKG.mode=b.dataset.pkm;
+    PKG.amt = PKG.mode==="g" ? (PKG.sg||100) : PKG.mode==="pack" ? 0.5 : 1;
+    render();});
+
+  const can=document.getElementById("pgcan"); if(can) can.onclick=()=>{PKG=null;render();toast("Discarded");};
+  const add=document.getElementById("pgadd");
+  if(add) add.onclick=()=>{
+    const T=pkgTotals(PKG); if(!T) return;
+    if(!PKG.name.trim()){ toast("Give it a name first"); return; }
+    const rec=pkgRecord(PKG);
+    DB.customFoods=DB.customFoods||[];
+    const i=DB.customFoods.findIndex(x=>x.n.toLowerCase()===rec.n.toLowerCase());
+    if(i>=0) DB.customFoods[i]=rec; else DB.customFoods.push(rec);
+    DB.food=DB.food||[];
+    DB.food.push({date:dkey(),n:rec.n,q:+(T.n.toFixed(3)),unit:rec.sl,
+      kcal:T.kcal,p:T.p,c:T.c,f:T.f,s:T.s});
+    PKG=null; save(); render(); toast(rec.n+" logged · saved for next time");
+  };
+}
+
 function pick(f){
   const n=prompt(`How many ${f.sl.replace(/^1\s+/,"")}?  (1 = ${f.sg} g)`,"1");
   if(n===null) return; const q=parseFloat(n); if(!q||q<=0) return;
