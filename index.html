@@ -281,6 +281,18 @@ input.n[type=time]{font-size:18px}
 .pbar{height:5px;border-radius:3px;background:var(--panel-2);overflow:hidden;margin-top:7px}
 .pbar i{display:block;height:100%;background:var(--opal);border-radius:3px}
 .pbar.p i{background:var(--fiery)} .pbar.c i{background:var(--goldie)} .pbar.f i{background:var(--disco)}
+.pbar.w i{background:linear-gradient(90deg,#5BA8D4,#7FCBBD)}
+.wq{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 0}
+.wq button{flex:1 1 0;min-width:74px;background:var(--panel);border:2px solid var(--line-2);border-radius:12px;
+  color:var(--chalk);padding:11px 6px;font-size:14px;font-weight:700;line-height:1.25}
+.wq button u{display:block;text-decoration:none;font-family:var(--mono);font-size:9.5px;
+  color:var(--dim);font-weight:400;margin-top:2px}
+.wq button.un{border-color:var(--line);color:var(--dim);flex:0 0 auto;min-width:0;padding:11px 13px}
+.wrow{display:flex;gap:7px;align-items:stretch;margin-top:9px}
+.wrow input{flex:1;min-width:0}
+.wrow button{flex:0 0 auto;padding:0 22px;background:linear-gradient(180deg,#9FE3D3,var(--opal));
+  border:0;border-radius:12px;color:#12211E;font:700 14px var(--sans);cursor:pointer}
+.wrow button:active{filter:brightness(.93)}
 .srch{width:100%;background:var(--panel);border:2px solid var(--line-2);border-radius:12px;color:var(--chalk);
   font-size:15px;padding:14px 14px;margin-bottom:10px}
 .srch:focus{outline:none;border-color:var(--go)}
@@ -2042,6 +2054,12 @@ function load(){
       &&(r.min==null||(isFinite(r.min)&&r.min>0&&r.min<600))):[];
   o.sleep=Array.isArray(o.sleep)?o.sleep.filter(s=>s&&s.date&&isFinite(s.hrs)&&s.hrs>0&&s.hrs<=16):[];
   o.weight=Array.isArray(o.weight)?o.weight.filter(w=>w&&w.date&&isFinite(w.lb)&&w.lb>=80&&w.lb<=400):[];
+  /* Water is stored as individual pours, never a running daily total, so a
+     mis-tap can be undone and the day can be rebuilt from its parts. */
+  o.water=Array.isArray(o.water)?o.water.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)
+      &&isFinite(x.ml)&&x.ml>0&&x.ml<=3000):[];
+  o.waterGoal=(isFinite(o.waterGoal)&&o.waterGoal>=200&&o.waterGoal<=6000)?o.waterGoal:2000;
+  o.bottleMl=(isFinite(o.bottleMl)&&o.bottleMl>=100&&o.bottleMl<=2000)?o.bottleMl:600;
   o.food=Array.isArray(o.food)?o.food.filter(f=>f&&f.date&&typeof f.n==="string"&&isFinite(f.kcal)):[];
   /* sg must be a positive number or the per-100 maths yields NaN and a silent
      zero-calorie row. Older custom foods predate the package feature and have
@@ -2075,10 +2093,10 @@ function mergeStored(mine){
   const wipe=Math.max(out._wipe||0, theirs._wipe||0);
   out._wipe=wipe;
   // if this copy wiped, drop anything older than the wipe
-  ["sessions","food","sleep","weight","runs"].forEach(k=>{
+  ["sessions","food","sleep","weight","runs","water"].forEach(k=>{
     out[k]=(out[k]||[]).filter(x=>x && !dead.has(x._id) && !(wipe && (x._t||0)<wipe));
   });
-  ["sessions","food","runs"].forEach(k=>{
+  ["sessions","food","runs","water"].forEach(k=>{
     const seen=new Set(out[k].map(x=>x._id).filter(Boolean));
     (theirs[k]||[]).forEach(x=>{
       if(!x||!x._id) return;
@@ -2120,7 +2138,7 @@ function restoreSnapshot(i){
 }
 function stampAll(){
   const now=Date.now();
-  ["sessions","food","sleep","weight","runs"].forEach(k=>(DB[k]||[]).forEach(x=>{
+  ["sessions","food","sleep","weight","runs","water"].forEach(k=>(DB[k]||[]).forEach(x=>{
     if(x&&!x._id)x._id=uid(); if(x&&!x._t)x._t=now; }));
 }
 function save(){
@@ -2160,7 +2178,9 @@ function render(){nav();
   const v=document.getElementById("view"),bar=document.getElementById("bar");
   if(tab==="home"){v.innerHTML=homeV();bar.innerHTML="";bar.style.display="none";document.getElementById("hm").classList.add("hide");
     const go=(id,t)=>{const el=document.getElementById(id);if(el)el.onclick=()=>{tab=t;if(t==="ALL")day=t;render();};};
-    go("goS",window.__next||day);go("goZ","sleep");go("goR","runs");go("goF","food");go("goW","weight");go("goP","prog");return;}
+    go("goS",window.__next||day);go("goZ","sleep");go("goR","runs");go("goF","food");go("goW","weight");go("goP","prog");
+    wireWater();   /* the Home water strip logs without navigating */
+    return;}
   bar.style.display="flex";document.getElementById("hm").classList.remove("hide");
   if(tab==="weight"){v.innerHTML=weightV();bar.innerHTML=`<button class="btn gh2" id="bk">Back</button><button class="btn" id="wsv">Save weight</button>`;
     document.getElementById("bk").onclick=()=>{tab="home";render();};
@@ -2357,6 +2377,16 @@ function homeV(){
        <span class="lbl">Log Sleep</span>
        <span class="cap"><b>${a7?"last 7 days ("+_w7.n+" logged)":"No nights yet"}</b><br>${loggedToday?"Last night logged":last?"Last "+last.hrs.toFixed(1)+"h":"Start tonight"}</span></button>
    </div>
+   ${(()=>{const t=waterToday(), g=DB.waterGoal||2000, bot=DB.bottleMl||600;
+      return `<div class="say" style="padding:13px 14px 14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <b style="font-size:14px">Water</b>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--dim)">${t} / ${g} ml</span></div>
+        <div class="pbar w" style="margin-top:9px"><i style="width:${Math.min(100,Math.round(t/g*100))}%"></i></div>
+        <div class="wq" style="margin-top:9px">
+          <button data-wml="${GLASS}">Glass<u>${GLASS} ml</u></button>
+          <button data-wml="${bot}">Bottle<u>${bot} ml</u></button>
+          <button class="un" id="wundo"${waterRows().length?"":" disabled"}>Undo</button></div></div>`;})()}
    <button class="wide" id="goF">
      <svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M8 13v8M17 3c-1.5 1.5-2 4-2 6s.5 3 2 3v9"/></svg>
      <span class="tx"><b>Log Food</b><i>${fk?fp+"g protein of "+TGT.p+"g today":"Nothing logged today"}</i></span>
@@ -2768,6 +2798,78 @@ function wireRuns(){
     if(r){ tomb(r._id); DB.runs=DB.runs.filter(x=>x!==r); save(); render(); toast("Removed"); }});
 }
 
+/* ---------- WATER (vlog-v2-17) ----------
+   Tap-to-log, so the design problem is mis-taps rather than typing. Every pour
+   is its own record and the last one is always removable in a single tap.
+   Totals are computed from dkey(), never from a UTC date, because an evening
+   glass logged after 8pm would otherwise land on tomorrow (the D-02 defect). */
+const GLASS=250;
+const waterRows=d=>(DB.water||[]).filter(x=>x.date===(d||dkey()));
+const waterToday=d=>waterRows(d).reduce((a,b)=>a+b.ml,0);
+function addWater(ml){
+  if(!(ml>0&&ml<=3000)) return;
+  DB.water=DB.water||[]; DB.water.push({date:dkey(),ml:Math.round(ml)});
+  if(save()){ render(); toast(Math.round(ml)+" ml · "+waterToday()+" today"); }
+}
+function undoWater(){
+  const r=waterRows(); if(!r.length){ toast("Nothing to undo"); return; }
+  const last=r[r.length-1];
+  tomb(last._id); DB.water=DB.water.filter(x=>x!==last);
+  if(save()){ render(); toast("Removed "+last.ml+" ml"); }
+}
+
+function waterCard(){
+  const t=waterToday(), g=DB.waterGoal||2000;
+  const pct=Math.min(100,Math.round(t/g*100));
+  const glasses=(t/GLASS);
+  const bot=DB.bottleMl||600;
+  const n=waterRows().length;
+  return `<div class="mac" style="grid-template-columns:1fr">
+     <div class="mc"><div class="v">${t}<u style="font-size:13px"> ml</u></div>
+       <div class="k">water today</div>
+       <div class="t">${pct}% of ${g} ml · ${glasses%1?glasses.toFixed(1):glasses} glass${glasses===1?"":"es"}</div>
+       <div class="pbar w"><i style="width:${pct}%"></i></div></div></div>
+   <div class="wq">
+     <button data-wml="${GLASS}">Glass<u>${GLASS} ml</u></button>
+     <button data-wml="${bot}">Bottle<u>${bot} ml</u></button>
+     <button data-wml="100">Sip<u>100 ml</u></button>
+     <button class="un" id="wundo"${n?"":" disabled"}>Undo</button>
+   </div>
+   <div class="wrow">
+     <input class="n" id="wother" inputmode="decimal" placeholder="Other amount — ml">
+     <button id="wadd">Add</button>
+   </div>
+   <div class="srow" style="border-bottom:0;padding:8px 0 2px">
+     <div class="fg"><span class="fl">Daily goal — ml</span>
+       <input class="n" id="wgoal" inputmode="decimal" value="${g}"></div>
+     <div class="fg"><span class="fl">My bottle — ml</span>
+       <input class="n" id="wbot" inputmode="decimal" value="${bot}"></div>
+   </div>
+   <div style="font-size:11px;line-height:1.5;color:var(--dim);margin:10px 2px 2px">${n?`<b style="color:var(--chalk)">${n} pour${n===1?"":"s"} today.</b> `:""}The
+     goal is a starting point you can change, not a medical target — thirst and pale urine are
+     better day-to-day guides, and more is not automatically better.</div>`;
+}
+
+function wireWater(){
+  document.querySelectorAll("[data-wml]").forEach(b=>b.onclick=()=>addWater(+b.dataset.wml));
+  const u=document.getElementById("wundo"); if(u) u.onclick=undoWater;
+  const o=document.getElementById("wother"), a=document.getElementById("wadd");
+  if(a) a.onclick=()=>{const v=parseFloat((o.value||"").replace(",","."));
+    if(!(v>0&&v<=3000)){toast("Enter an amount up to 3000 ml");return;} o.value=""; addWater(v);};
+  if(o) o.onkeydown=e=>{if(e.key==="Enter"&&a) a.click();};
+  /* onchange fires DURING blur. Calling render() there rewrites #view while the
+     browser is still unfocusing the input, which throws. Defer the repaint. */
+  const repaint=()=>setTimeout(()=>render(),0);
+  const g=document.getElementById("wgoal");
+  if(g) g.onchange=()=>{const v=parseFloat(g.value);
+    if(v>=200&&v<=6000){DB.waterGoal=Math.round(v); save(); toast("Goal set to "+Math.round(v)+" ml"); repaint();}
+    else {toast("Goal must be 200–6000 ml"); g.value=DB.waterGoal;}};
+  const b=document.getElementById("wbot");
+  if(b) b.onchange=()=>{const v=parseFloat(b.value);
+    if(v>=100&&v<=2000){DB.bottleMl=Math.round(v); save(); toast("Bottle set to "+Math.round(v)+" ml"); repaint();}
+    else {toast("Bottle must be 100–2000 ml"); b.value=DB.bottleMl;}};
+}
+
 function foodV(){
   const T=foodTotals(), pc=(v,t)=>Math.min(100,Math.round(v/t*100));
   const rows=T.rows.slice().reverse().map((x,i)=>`<div class="fr">
@@ -2776,6 +2878,8 @@ function foodV(){
      <button class="add" data-del="${T.rows.length-1-i}" style="border-color:var(--hot);color:var(--hot)">×</button></div>`).join("")
    ||`<div class="empty">Nothing logged today.<br>Search below to add.</div>`;
   return `<div class="wrap">
+   ${waterCard()}
+   <h2 class="sec" style="margin-top:18px">Food</h2>
    <div class="mac">
      <div class="mc"><div class="v">${Math.round(T.kcal)}</div><div class="k">kcal</div><div class="t">${TGT.kcal?"of "+TGT.kcal:"today"}</div>
        ${TGT.kcal?`<div class="pbar"><i style="width:${pc(T.kcal,TGT.kcal)}%"></i></div>`:""}</div>
@@ -2795,6 +2899,12 @@ function foodV(){
         ds.map(d=>({v:Math.round(by[d].k),l:lab(d)})),{color:"#7FCBBD",color2:"#9FE3D3",target:TGT.kcal||null,targetLabel:"target",id:4,dp:0})
        + chartCard("Protein per day",TGT.p?"dotted line is "+TGT.p+"g":"per day",
         ds.map(d=>({v:Math.round(by[d].p),l:lab(d)})),{color:"#E0B44A",color2:"#EFC96E",target:TGT.p||null,targetLabel:"target",id:5,dp:0});})()}
+   ${(()=>{const bw={};(DB.water||[]).forEach(x=>{bw[x.date]=(bw[x.date]||0)+x.ml;});
+      const ws=Object.keys(bw).sort(); if(ws.length<2) return "";
+      const lab=d=>new Date(d+"T12:00").toLocaleDateString(undefined,{day:"numeric",month:"short"});
+      const hit=ws.filter(d=>bw[d]>=(DB.waterGoal||2000)).length;
+      return chartCard("Water per day",`${ws.length} days · ${hit} at goal · dotted line is ${DB.waterGoal||2000} ml`,
+        ws.map(d=>({v:bw[d],l:lab(d)})),{color:"#5BA8D4",color2:"#7FCBBD",target:DB.waterGoal||null,targetLabel:"goal",id:9,dp:0});})()}
    <div class="say" id="tgtbox" style="display:${TGT.kcal?"none":"block"}">
      <div class="hintl" style="margin:0 0 10px">Set daily targets to see progress bars. You can skip this and just log food.</div>
      <div class="srow" style="border-bottom:0;padding:0">
@@ -2839,6 +2949,7 @@ function foodV(){
    <div class="note">${TGT.kcal?`Targets: ${TGT.kcal} kcal · ${TGT.p}g protein · ${TGT.c}g carbs · ${TGT.f}g fat. `:""}Values come from a food database, not from measuring your plate — treat them as directional, roughly ±15%.</div></div>`;}
 
 function wireFood(){
+  wireWater();
   wirePkg();
   const q=document.getElementById("fq"), res=document.getElementById("fres");
   const custom=DB.customFoods||[];
